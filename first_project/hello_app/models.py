@@ -2,35 +2,48 @@ from django.db import models
 
 # Create your models here.
 
-class Author(models.Model):
-    name = models.CharField(verbose_name='имя автора', max_length=20)
-    surname = models.CharField("Фамилия", max_length=25)
-    birthday = models.DateField("Дата рождение")
-    bio = models.TextField('Биография')
-    desc = models.CharField("Умер или нет", default='No')
+class Users(models.Model):
+    user_name = models.CharField(verbose_name='имя пользователя')
+    email = models.CharField("почта")
+    balance = models.IntegerField("баланс аккаунта")
+    trade_link = models.TextField('ссылка для обмена')
+    role = models.CharField("admin or user", default='user')
     class Meta:
-        verbose_name = "Автор"
-        verbose_name_plural = "Авторы"
-        ordering = ["surname", "name"]
+        verbose_name = "user"
+        verbose_name_plural = "users"
+        ordering = ["user_name", "role"]
         indexes = [
-            models.Index(fields=["surname"])
+            models.Index(fields=["user_name"])
         ]
-
-        constraints = [
-            models.UniqueConstraint(
-                fields = ["surname", "bio"],
-                condition = models.Q(desc = "Жив"),
-                name = "unique_surname_bio"
-            ),
-            ]
-
     def str(self):
-        return f"{self.surname} {self.name}"
+        return f"{self.user_name} {self.role}"
+    
+class Items(models.Model):
+    name = models.CharField(verbose_name='название предмета')
+    image_url = models.CharField("картинка предмета")
+    rarity = models.TextField("редкость предмета")
+    is_stattrack = models.TextField('stattrack or no', default= 'no')
+    class Meta:
+        verbose_name = "item"
+        verbose_name_plural = "items"
+        ordering = ["name", "image_url"]
+        indexes = [
+            models.Index(fields=["name"])
+        ]
+    def str(self):
+        return f"{self.name} {self.image_url}"
 
-class Publisher(models.Model):
-    namr = models.CharField("Название", unique=True)
 
-class Book(models.Model):
-    title = models.CharField("Название", max_length=50)
-    id_publisher = models.ForeignKey(Publisher, on_delete=models.CASCADE)
-    id_author = models.ManyToManyField(Author)
+class Cases(models.Model):
+    name = models.CharField(verbose_name='название кейса')
+    price = models.IntegerField("цена кейса")
+    description = models.TextField("описание текста")
+    class Meta:
+        verbose_name = "case"
+        verbose_name_plural = "cases"
+        ordering = ["user_name", "role"]
+        indexes = [
+            models.Index(fields=["user_name"])
+        ]
+    def str(self):
+        return f"{self.user_name} {self.role}"
