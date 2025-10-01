@@ -5,3 +5,8 @@ from .models import *
 
 
 admin.site.register(Users)
+admin.site.register(Items)
+admin.site.register(Cases)
+admin.site.register(Contract)
+admin.site.register(Upgrade)
+admin.site.register(case_contents)
