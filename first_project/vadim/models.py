@@ -5,7 +5,7 @@ class Users(models.Model):
     email = models.EmailField("почта", max_length=255)
     balance = models.IntegerField("баланс аккаунта", default=0)
     trade_link = models.TextField('ссылка для обмена')
-    role = models.CharField("admin or user", max_length=20, default='user')
+    is_admin = models.BooleanField("admin", default= False)
     
     class Meta:
         verbose_name = "user"
@@ -22,7 +22,7 @@ class Items(models.Model):
     name = models.CharField(verbose_name='название предмета', max_length=255)
     rarity = models.CharField("редкость предмета", max_length=50)
     price = models.DecimalField("цена предмета", max_digits=10, decimal_places=2)  
-    is_stattrack = models.BooleanField('stattrack or no', default=False)
+    is_stattrack = models.BooleanField('stattrack', default=False)
     
     class Meta:
         verbose_name = "item"
