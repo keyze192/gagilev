@@ -102,3 +102,19 @@ class case_contents(models.Model):
     
     def __str__(self):
         return f"{self.drop_chance}%"
+
+class Chance(models.Model):
+    chance = models.DecimalField("шанс выпадения", max_digits=10, decimal_places=2)  
+    item = models.ForeignKey(Items, verbose_name='предметы', on_delete=models.CASCADE)
+    cases = models.ForeignKey(Cases, verbose_name='кейс', on_delete=models.CASCADE)
+    
+    class Meta:
+        verbose_name = "chance"
+        verbose_name_plural = "chances"
+        ordering = ["item"]
+        indexes = [
+            models.Index(fields=["item"])
+        ]
+    
+    def __str__(self):
+        return f"{self.item}"
