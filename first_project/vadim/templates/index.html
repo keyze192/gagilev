@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LUCK-BATTLE - Открывай кейсы и выигрывай скины!</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/reset.css">
 </head>
 <body>
     <header>
@@ -17,10 +17,9 @@
                 </a>
                 <nav>
                     <ul>
-                        <li><a href="#" style="color: rgb(254, 254, 255);"><i class="fas fa-home"></i>Главная</a></li>
-                        <li><a href="#cases" style="color: rgb(255, 255, 255);"><i class="fas fa-box"></i>Кейсы</a></li>
-                        <li><a href="#contract" style="color: rgb(255, 251, 251);"><i class="fas fa-trophy"></i>Контракт</a></li>
-                        <li><a href="#apgrade" style="color: rgb(255, 255, 255);"><i class="fas fa-archive"></i>Апгрейд</a></li>
+                        <li><a href="#"><i class="fas fa-home"></i>Главная</a></li>
+                        <li><a href="#contract"><i class="fas fa-trophy"></i>Контракт</a></li>
+                        <li><a href="#apgrade"><i class="fas fa-archive"></i>Апгрейд</a></li>
                     </ul>
                 </nav>
                 <div class="user-actions">
@@ -36,11 +35,45 @@
             </div>
         </div>
     </header>
+<main>
+    <section class="cases-section">
+        <div class="container">
+            <h2 class="section-title">Популярные кейсы</h2>
+            <div class="cases-grid">
+                <div class="case-card">
+                    <div class="case-image">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="case-name">Боевой кейс</div>
+                    <div class="case-price">100 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+                <div class="case-card">
+                    <div class="case-image">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="case-name">Премиум кейс</div>
+                    <div class="case-price">500 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+                <div class="case-card">
+                    <div class="case-image">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="case-name">Легендарный кейс</div>
+                    <div class="case-price">1000 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+</main>
     <footer id="support">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-column">
-                    <h3>CaseBattle</h3>
+                    <h3>LUCK-BATTLE</h3>
                     <ul>
                         <li><a href="#"><i class="fas fa-info-circle"></i>О нас</a></li>
                         <li><a href="#"><i class="fas fa-scroll"></i>Правила</a></li>
@@ -65,45 +98,9 @@
                 </div>
             </div>
             <div class="copyright">
-                &copy; 2023 CaseBattle. Все права защищены.
+                &copy; 2025 LUCK-BATTLE. Все права защищены.
             </div>
         </div>
     </footer>
-
-    <script>
-        document.querySelector('.open-btn').addEventListener('click', function() {
-            const caseDisplay = document.querySelector('.case-display');
-            const items = [
-                {icon: 'fas fa-gun', rarity: ''},
-                {icon: 'fas fa-knife', rarity: 'rare'},
-                {icon: 'fas fa-helmet-battle', rarity: ''},
-                {icon: 'fas fa-chess-queen', rarity: 'epic'},
-                {icon: 'fas fa-bullseye', rarity: ''},
-                {icon: 'fas fa-crown', rarity: 'legendary'}
-            ];
-            
-            caseDisplay.innerHTML = '<i class="fas fa-sync-alt"></i>';
-            caseDisplay.classList.add('spinning');
-            caseDisplay.classList.remove('glowing');
-            
-            setTimeout(() => {
-                const randomIndex = Math.floor(Math.random() * items.length);
-                caseDisplay.innerHTML = `<i class="${items[randomIndex].icon}"></i>`;
-                caseDisplay.className = 'case-display';
-                caseDisplay.classList.add(items[randomIndex].rarity);
-                caseDisplay.classList.add('glowing');
-                
-                alert(`Поздравляем! Вы выиграли предмет: ${items[randomIndex].icon.split('-')[1]}`);
-            }, 2000);
-        });
-        
-        document.querySelectorAll('.case-card .btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const caseName = this.closest('.case-card').querySelector('.case-name').textContent;
-                const casePrice = this.closest('.case-card').querySelector('.case-price').textContent;
-                alert(`Вы выбрали кейс: ${caseName} за ${casePrice}`);
-            });
-        });
-    </script>
 </body>
 </html>

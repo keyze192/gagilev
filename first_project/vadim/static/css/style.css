@@ -42,7 +42,7 @@ header {
 .logo {
     font-size: 28px;
     font-weight: bold;
-    color: var(--text-color);
+    color: var(--primary-color);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -59,7 +59,6 @@ header {
     color: var(--primary-color);
 }
 
-/* Navigation */
 nav ul {
     display: flex;
     list-style: none;
@@ -88,7 +87,6 @@ nav a i {
     font-size: 16px;
 }
 
-/* User Actions */
 .user-actions {
     display: flex;
     align-items: center;
@@ -130,10 +128,13 @@ nav a i {
     box-shadow: var(--glow);
 }
 
+
 main {
     margin-top: 80px;
     min-height: calc(100vh - 200px);
+    padding: 40px 0;
 }
+
 
 .hero {
     background: var(--gradient);
@@ -170,11 +171,65 @@ main {
     color: var(--text-secondary);
 }
 
+.open-btn {
+    font-size: 18px;
+    padding: 15px 40px;
+    margin-bottom: 50px;
+}
+
+.stats {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-top: 50px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.cases-section {
+    padding: 80px 0;
+    background: var(--secondary-color);
+}
+
+.section-title {
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 50px;
+    color: var(--text-color);
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: var(--primary-color);
+}
+
 .cases-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
-    padding: 50px 0;
+    margin-top: 50px;
 }
 
 .case-card {
@@ -346,6 +401,14 @@ footer {
     .user-actions {
         flex-direction: column;
         gap: 10px;
+    }
+    
+    .stats {
+        gap: 30px;
+    }
+    
+    .stat-value {
+        font-size: 24px;
     }
 }
 
