@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUCK-BATTLE - Открывай кейсы и выигрывай скины!</title>
+    <title>{% block title %}LUCK-BATTLE - Открывай кейсы и выигрывай скины!{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/reset.css">
 </head>
@@ -36,38 +36,8 @@
         </div>
     </header>
 <main>
-    <section class="cases-section">
-        <div class="container">
-            <h2 class="section-title">Популярные кейсы</h2>
-            <div class="cases-grid">
-                <div class="case-card">
-                    <div class="case-image">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <div class="case-name">Боевой кейс</div>
-                    <div class="case-price">100 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <div class="case-name">Премиум кейс</div>
-                    <div class="case-price">500 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <div class="case-name">Легендарный кейс</div>
-                    <div class="case-price">1000 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-            </div>
-        </div>
-    </section>
-</main>
+    {% block content %}
+    {% endblock %}
 </main>
     <footer id="support">
         <div class="container">
