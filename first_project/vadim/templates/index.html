@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LUCK-BATTLE - Открывай кейсы и выигрывай скины!{% endblock %}</title>
+    <title>{% block title %}LUCK-BATTLE{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/reset.css">
 </head>
@@ -11,15 +11,15 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <a href="#" class="logo">
+                <a href="{% url 'main' %}" class="logo">
                     <i class="fas fa-dice"></i>
                     LUCK-BATTLE
                 </a>
                 <nav>
                     <ul>
-                        <li><a href="#"><i class="fas fa-home"></i>Главная</a></li>
-                        <li><a href="#contract"><i class="fas fa-trophy"></i>Контракт</a></li>
-                        <li><a href="#apgrade"><i class="fas fa-archive"></i>Апгрейд</a></li>
+                        <li><a href="{% url 'main' %}" {% if request.resolver_match.url_name == 'main' %}class="active"{% endif %}><i class="fas fa-home"></i>Главная</a></li>
+                        <li><a href="{% url 'contract' %}" {% if request.resolver_match.url_name == 'contract' %}class="active"{% endif %}><i class="fas fa-trophy"></i>Контракт</a></li>
+                        <li><a href="{% url 'upgrade' %}" {% if request.resolver_match.url_name == 'upgrade' %}class="active"{% endif %}><i class="fas fa-archive"></i>Апгрейд</a></li>
                     </ul>
                 </nav>
                 <div class="user-actions">
@@ -35,10 +35,12 @@
             </div>
         </div>
     </header>
-<main>
-    {% block content %}
-    {% endblock %}
-</main>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
     <footer id="support">
         <div class="container">
             <div class="footer-content">
@@ -72,5 +74,7 @@
             </div>
         </div>
     </footer>
+
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

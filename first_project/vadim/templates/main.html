@@ -3,55 +3,57 @@
 
 <section class="search-filters">
     <div class="container">
-        <div class="search-section">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="caseSearch" placeholder="Поиск кейсов...">
-                <button class="search-btn">
+        <div class="search-filters-row">
+            <div class="search-container">
+                <div class="search-box-minimal">
                     <i class="fas fa-search"></i>
+                    <input type="text" id="caseSearch" placeholder="Найти кейсы...">
+                    <button class="clear-search" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters-minimal">
+                <div class="filter-select-wrapper">
+                    <select id="priceFilter" class="filter-select">
+                        <option value="all">Цена</option>
+                        <option value="0-500">До 500 ₽</option>
+                        <option value="500-1000">500-1000 ₽</option>
+                        <option value="1000-5000">1000-5000 ₽</option>
+                        <option value="5000+">От 5000 ₽</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <div class="filter-select-wrapper">
+                    <select id="rarityFilter" class="filter-select">
+                        <option value="all">Все кейсы</option>
+                        <option value="common">Популярные</option>
+                        <option value="brat">Братские</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <div class="filter-select-wrapper">
+                    <select id="sortFilter" class="filter-select">
+                        <option value="popular">Сортировка</option>
+                        <option value="price-asc">Цена ↑</option>
+                        <option value="price-desc">Цена ↓</option>
+                        <option value="name">По названию</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <button class="filter-reset-minimal" title="Сбросить фильтры">
+                    <i class="fas fa-redo-alt"></i>
                 </button>
             </div>
         </div>
         
-        <div class="filters-section">
-            <div class="filter-group">
-                <label for="priceFilter">Цена:</label>
-                <select id="priceFilter">
-                    <option value="all">Любая цена</option>
-                    <option value="0-500">До 500 ₽</option>
-                    <option value="500-1000">500 - 1000 ₽</option>
-                    <option value="1000-5000">1000 - 5000 ₽</option>
-                    <option value="5000+">От 5000 ₽</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="rarityFilter">Кейсы:</label>
-                <select id="rarityFilter">
-                    <option value="all">Все кейсы</option>
-                    <option value="common">Популярные кейсы</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <label for="sortFilter">Сортировка:</label>
-                <select id="sortFilter">
-                    <option value="popular">По популярности</option>
-                    <option value="price-asc">Цена: по возрастанию</option>
-                    <option value="price-desc">Цена: по убыванию</option>
-                    <option value="name">По названию</option>
-                </select>
-            </div>
-            
-            <div class="filter-group">
-                <button class="filter-reset btn-secondary">
-                    <i class="fas fa-redo"></i>
-                    Сбросить
-                </button>
-            </div>
-        </div>
-        
-        <div class="active-filters">
+
+        <div class="active-filters-minimal">
+
         </div>
     </div>
 </section>
@@ -106,6 +108,61 @@
                     </div>
                     <div class="case-name">Крутой кейс</div>
                     <div class="case-price">666 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+            </div>
+        </div>
+    </section>
+     <section class="cases-section">
+        <div class="container">
+            <h2 class="section-title">Братские кейсы</h2>
+            <div class="cases-grid">
+                <div class="case-card">
+                    <div class="case-image">
+                        <img src="" alt="" class="fas fa-box">
+                    </div>
+                    <div class="case-name">Константа</div>
+                    <div class="case-price">333 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+                <div class="case-card">
+                    <div class="case-image">
+                        <img src="" alt="" class="fas fa-box">
+                    </div>
+                    <div class="case-name">Гаджуля</div>
+                    <div class="case-price">666 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+                <div class="case-card">
+                    <div class="case-image">
+                        <img src="" alt="" class="fas fa-box">
+                    </div>
+                    <div class="case-name">Одноглазый</div>
+                    <div class="case-price">777 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+                <div class="case-card">
+                    <div class="case-image">
+                        <img src="" alt="" class="fas fa-box">
+                    </div>
+                    <div class="case-name">Кирилица</div>
+                    <div class="case-price">767 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+                 <div class="case-card">
+                    <div class="case-image">
+                        <img src="" alt="" class="fas fa-box">
+                    </div>
+                    <div class="case-name">2107</div>
+                    <div class="case-price">777 ₽</div>
+                    <button class="btn">Открыть</button>
+                </div>
+                <div class="case-card">
+                    <div class="case-image">
+                        <img src="" alt="" class="fas fa-box">
+                    </div>
+                    <div class="case-name">Вадимильян</div>
+                    <div class="case-price">888 ₽</div>
                     <button class="btn">Открыть</button>
                 </div>
             </div>
