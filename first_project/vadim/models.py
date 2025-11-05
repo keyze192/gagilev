@@ -16,7 +16,7 @@ class Users(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.user_name} {self.role}"
+        return f"{self.user_name}"
 
 class Items(models.Model):
     name = models.CharField(verbose_name='название предмета', max_length=255)
@@ -86,23 +86,7 @@ class Upgrade(models.Model):
     
     def __str__(self):
         return f"{self.amount}"
-
-class case_contents(models.Model):
-    drop_chance = models.DecimalField("шанс выпадения", max_digits=5, decimal_places=2)  
-    case = models.ForeignKey(Cases, verbose_name='кейс', on_delete=models.CASCADE)
-    item = models.ForeignKey(Items, verbose_name='предмет', on_delete=models.CASCADE)
     
-    class Meta:
-        verbose_name = "case_content"
-        verbose_name_plural = "case_contents"
-        ordering = ["drop_chance"]
-        indexes = [
-            models.Index(fields=["drop_chance"])
-        ]
-    
-    def __str__(self):
-        return f"{self.drop_chance}%"
-
 class Chance(models.Model):
     chance = models.DecimalField("шанс выпадения", max_digits=10, decimal_places=2)  
     item = models.ForeignKey(Items, verbose_name='предметы', on_delete=models.CASCADE)
