@@ -51,122 +51,33 @@
             </div>
         </div>
         
-
         <div class="active-filters-minimal">
-
         </div>
     </div>
 </section>
+
 <main>
     <section class="cases-section">
         <div class="container">
             <h2 class="section-title">Популярные кейсы</h2>
             <div class="cases-grid">
+                {% for case in popular_cases %}
                 <div class="case-card">
                     <div class="case-image">
-                        <img src="../static/image/middle-68f0bb3eebc6f.png" alt="" class="fas fa-box">
+                        {% if case.image %}
+                            <img src="{{ case.image.url }}" alt="{{ case.name }}">
+                        {% else %}
+                            <i class="fas fa-box"></i>
+                        {% endif %}
                     </div>
-                    <div class="case-name">Боевой кейс</div>
-                    <div class="case-price">100 ₽</div>
+                    <div class="case-name">{{ case.name }}</div>
+                    <div class="case-price">{{ case.price }} ₽</div>
                     <button class="btn">Открыть</button>
                 </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <img src="../static/image/middle-68d6995dba93c.png" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Премиум кейс</div>
-                    <div class="case-price">500 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <img src="../static/image/middle-68bae5f9ed245.png" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Легендарный кейс</div>
-                    <div class="case-price">1000 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                 <div class="case-card">
-                    <div class="case-image">
-                        <img src="../static/image/middle-67e6ac2e63259.png" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Летний кейс</div>
-                    <div class="case-price">10000 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                                 <div class="case-card">
-                    <div class="case-image">
-                        <img src="../static/image/middle-63e3b3a55b536.png" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Забивной кейс</div>
-                    <div class="case-price">777 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                                 <div class="case-card">
-                    <div class="case-image">
-                        <img src="../static/image/middle-63e3afecc83e7.png" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Крутой кейс</div>
-                    <div class="case-price">666 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
+                {% endfor %}
             </div>
         </div>
     </section>
-     <section class="cases-section">
-        <div class="container">
-            <h2 class="section-title">Братские кейсы</h2>
-            <div class="cases-grid">
-                <div class="case-card">
-                    <div class="case-image">
-                        <img src="" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Константа</div>
-                    <div class="case-price">333 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <img src="" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Гаджуля</div>
-                    <div class="case-price">666 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <img src="" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Одноглазый</div>
-                    <div class="case-price">777 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <img src="" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Кирилица</div>
-                    <div class="case-price">767 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                 <div class="case-card">
-                    <div class="case-image">
-                        <img src="" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">2107</div>
-                    <div class="case-price">777 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-                <div class="case-card">
-                    <div class="case-image">
-                        <img src="" alt="" class="fas fa-box">
-                    </div>
-                    <div class="case-name">Вадимильян</div>
-                    <div class="case-price">888 ₽</div>
-                    <button class="btn">Открыть</button>
-                </div>
-            </div>
-        </div>
-    </section>
+
 </main>
 {% endblock %}

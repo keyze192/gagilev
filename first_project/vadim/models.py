@@ -40,6 +40,12 @@ class Cases(models.Model):
     name = models.CharField(verbose_name='название кейса', max_length=255)
     price = models.IntegerField("цена кейса")
     description = models.TextField("описание кейса")
+    image = models.ImageField(
+        "изображение кейса", 
+        upload_to='cases/', 
+        blank=True, 
+        null=True
+    )
     
     class Meta:
         verbose_name = "case"

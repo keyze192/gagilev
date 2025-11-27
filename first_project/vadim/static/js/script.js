@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Фильтрация по редкости (заглушка - можно расширить)
+            // Фильтрация по редкости
             if (rarityValue !== 'all') {
             }
             
