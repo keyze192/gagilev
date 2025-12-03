@@ -837,3 +837,375 @@ footer {
     opacity: 0.5;
     cursor: not-allowed;
 }
+/* Страница апгрейда */
+.upgrade-page {
+    background: var(--secondary-color);
+    min-height: 100vh;
+}
+
+.upgrade-main-section {
+    padding: 40px 0;
+}
+
+/* Основной лейаут */
+.upgrade-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Левая колонка */
+.left-column {
+    background: var(--accent-color);
+    border-radius: 15px;
+    padding: 25px;
+}
+
+.upgrade-card-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    text-align: center;
+}
+
+/* Сетка предметов */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.item-slot {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.item-slot.empty:hover {
+    border-color: var(--primary-color);
+    background: rgba(255, 70, 85, 0.1);
+}
+
+.item-slot.filled {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.slot-content {
+    text-align: center;
+}
+
+.slot-placeholder {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 5px;
+}
+
+.slot-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Контролы */
+.upgrade-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-auto-fill, .btn-clear-all {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--text-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-auto-fill:hover {
+    background: rgba(76, 217, 100, 0.2);
+    border-color: #4cd964;
+}
+
+.btn-clear-all:hover {
+    background: rgba(255, 70, 85, 0.2);
+    border-color: var(--primary-color);
+}
+
+/* Правая колонка */
+.right-column {
+    background: var(--accent-color);
+    border-radius: 15px;
+    padding: 25px;
+    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+.info-title {
+    font-size: 24px;
+    margin-bottom: 25px;
+    color: var(--text-color);
+    text-align: center;
+}
+
+/* Детали апгрейда */
+.upgrade-details {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.detail-value {
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.success-chance {
+    color: #4cd964;
+}
+
+.upgrade-cost {
+    color: gold;
+}
+
+/* Превью предмета */
+.upgrade-preview {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.preview-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.preview-image {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.preview-info {
+    flex: 1;
+}
+
+.preview-name {
+    color: var(--text-color);
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.preview-price {
+    color: gold;
+    font-size: 14px;
+}
+
+/* Кнопка апгрейда */
+.upgrade-button {
+    background: var(--primary-color);
+    color: var(--text-color);
+    border: none;
+    padding: 18px 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.upgrade-button:hover:not(:disabled) {
+    background: #ff2d3d;
+    transform: translateY(-2px);
+    box-shadow: var(--glow);
+}
+
+.upgrade-button:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.button-price {
+    color: gold;
+}
+
+/* Уведомление */
+.upgrade-notice {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+}
+
+.upgrade-notice p {
+    color: #ffc107;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* История апгрейдов */
+.upgrade-history-section {
+    padding: 60px 0;
+    background: rgba(15, 25, 35, 0.5);
+}
+
+.history-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.history-item {
+    background: var(--accent-color);
+    border-radius: 10px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+
+.history-item:hover {
+    transform: translateX(5px);
+    border-left: 3px solid var(--primary-color);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.history-content {
+    flex: 1;
+}
+
+.history-text {
+    color: var(--text-color);
+    margin-bottom: 5px;
+}
+
+.username {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.item-name {
+    color: gold;
+    font-weight: bold;
+}
+
+.history-time {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.history-profit {
+    color: #4cd964;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .upgrade-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .right-column {
+        position: static;
+    }
+    
+    .items-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .upgrade-main-section {
+        padding: 20px 0;
+    }
+    
+    .items-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    
+    .upgrade-controls {
+        flex-direction: column;
+    }
+    
+    .history-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .user-avatar {
+        align-self: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .items-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .left-column, .right-column {
+        padding: 15px;
+    }
+}

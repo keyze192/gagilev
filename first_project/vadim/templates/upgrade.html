@@ -1,20 +1,182 @@
 {% extends "index.html" %}
-{% block content %}
 
-<section class="cases-section">
-    <div class="container">
-        <h2 class="section-title">Апгрейд предметов</h2>
-        <div class="cases-grid">
-            <div class="case-card">
-                <div class="case-image">
-                    <i class="fas fa-tools"></i>
+{% block title %}LUCK-BATTLE - Апгрейд{% endblock %}
+
+{% block content %}
+<div class="upgrade-page">
+    <section class="upgrade-main-section">
+        <div class="container">
+            <div class="upgrade-layout">
+                <!-- Левая колонка - Выбор предметов -->
+                <div class="upgrade-column left-column">
+                    <div class="upgrade-card">
+                        <h3 class="upgrade-card-title">Выберите предметы для апгрейда</h3>
+                        <div class="items-grid">
+                            <!-- Пустые слоты для предметов -->
+                            <div class="item-slot empty" data-slot="1">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="2">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="3">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="4">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="5">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="6">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="7">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="8">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="9">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                            <div class="item-slot empty" data-slot="10">
+                                <div class="slot-content">
+                                    <div class="slot-placeholder">+</div>
+                                    <span class="slot-text">Добавить предмет</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="upgrade-controls">
+                            <button class="btn-auto-fill">
+                                Заполнить автоматически
+                            </button>
+                            <button class="btn-clear-all">
+                                Очистить все
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="case-name">Система апгрейда</div>
-                <div class="case-price">Скоро будет</div>
-                <button class="btn">Обновить</button>
+
+                <!-- Правая колонка - Информация и кнопка -->
+                <div class="upgrade-column right-column">
+                    <div class="upgrade-info-card">
+                        <h3 class="info-title">Апгрейд</h3>
+                        
+                        <div class="upgrade-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Выбранно предметов:</span>
+                                <span class="detail-value">0/10</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Общая стоимость:</span>
+                                <span class="detail-value">0 ₽</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Шанс успеха:</span>
+                                <span class="detail-value success-chance">100%</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Стоимость апгрейда:</span>
+                                <span class="detail-value upgrade-cost">0 ₽</span>
+                            </div>
+                        </div>
+
+                        <div class="upgrade-preview">
+                            <div class="preview-item">
+                                <div class="preview-image"></div>
+                                <div class="preview-info">
+                                    <div class="preview-name">Новый предмет</div>
+                                    <div class="preview-price">~0 ₽</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="upgrade-button" disabled>
+                            <span class="button-text">Выберите предметы</span>
+                            <span class="button-price">0 ₽</span>
+                        </button>
+
+                        <div class="upgrade-notice">
+                            <p>💡 Объединяйте несколько предметов для получения одного более ценного</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
+    <!-- Секция с историей апгрейдов -->
+    <section class="upgrade-history-section">
+        <div class="container">
+            <h2 class="section-title">Последние апгрейды</h2>
+            <div class="history-grid">
+                <!-- Примеры успешных апгрейдов -->
+                <div class="history-item success">
+                    <div class="user-avatar">User1</div>
+                    <div class="history-content">
+                        <div class="history-text">
+                            <span class="username">Игрок_123</span> получил
+                            <span class="item-name">★ Нож | Ультрафиолет</span>
+                        </div>
+                        <div class="history-time">2 минуты назад</div>
+                    </div>
+                    <div class="history-profit">+15 000 ₽</div>
+                </div>
+
+                <div class="history-item success">
+                    <div class="user-avatar">User2</div>
+                    <div class="history-content">
+                        <div class="history-text">
+                            <span class="username">Счастливчик</span> получил
+                            <span class="item-name">Перчатки | Хим. обработка</span>
+                        </div>
+                        <div class="history-time">5 минут назад</div>
+                    </div>
+                    <div class="history-profit">+8 500 ₽</div>
+                </div>
+
+                <div class="history-item success">
+                    <div class="user-avatar">User3</div>
+                    <div class="history-content">
+                        <div class="history-text">
+                            <span class="username">Везение</span> получил
+                            <span class="item-name">AK-47 | Красная линия</span>
+                        </div>
+                        <div class="history-time">10 минут назад</div>
+                    </div>
+                    <div class="history-profit">+3 200 ₽</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}
