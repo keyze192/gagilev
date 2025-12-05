@@ -1,0 +1,148 @@
+{% extends "index.html" %}
+
+{% block title %}LUCK-BATTLE - {{ case.name }}{% endblock %}
+
+{% block content %}
+<div class="case-detail-page">
+
+    <section class="case-hero-section">
+        <div class="container">
+            <div class="case-hero">
+                <div class="case-header">
+                    <div class="case-image-large">
+                        {% if case.image %}
+                            <img src="{{ case.image.url }}" alt="{{ case.name }}">
+                        {% else %}
+                            <div class="case-icon-large">
+                                <i class="fas fa-box"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="case-info">
+                        <h1 class="case-title">{{ case.name }}</h1>
+                        <div class="case-price-large">{{ case.price }} ₽</div>
+                        <p class="case-description">{{ case.description|default:"Откройте этот кейс, чтобы получить уникальные предметы!" }}</p>
+                        
+                        <div class="case-stats">
+                            <div class="stat">
+                                <div class="stat-value">{{ total_items }}</div>
+                                <div class="stat-label">Предметов в кейсе</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">От {{ case.price }} ₽</div>
+                                <div class="stat-label">Стоимость открытия</div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-pulse open-case-btn" style="margin-top: 20px;">
+                            <i class="fas fa-gift"></i> Открыть за {{ case.price }} ₽
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="case-items-section">
+        <div class="container">
+            <h2 class="section-title">Содержимое кейса</h2>
+            
+
+            <div class="rarity-filter">
+                <button class="rarity-filter-btn active" data-rarity="all">Все предметы</button>
+                <button class="rarity-filter-btn" data-rarity="ancient">Древние</button>
+                <button class="rarity-filter-btn" data-rarity="legendary">Легендарные</button>
+                <button class="rarity-filter-btn" data-rarity="epic">Эпические</button>
+                <button class="rarity-filter-btn" data-rarity="rare">Редкие</button>
+                <button class="rarity-filter-btn" data-rarity="common">Обычные</button>
+            </div>
+            
+            <div class="rarity-sections">
+                {% for rarity, items in items_by_rarity.items %}
+                <div class="rarity-section" data-rarity="{{ rarity }}">
+                    <h3 class="rarity-title {{ rarity }}">
+                        <i class="fas fa-star"></i> 
+                        {% if rarity == 'ancient' %}Древние
+                        {% elif rarity == 'legendary' %}Легендарные
+                        {% elif rarity == 'epic' %}Эпические
+                        {% elif rarity == 'rare' %}Редкие
+                        {% elif rarity == 'common' %}Обычные
+                        {% else %}{{ rarity|title }}{% endif %}
+                        <span class="rarity-count">({{ items|length }})</span>
+                    </h3>
+                    
+                    <div class="items-grid">
+                        {% for item_data in items %}
+                        <div class="item-card {{ rarity }} border-{{ rarity }}" data-rarity="{{ rarity }}">
+                            <div class="item-header">
+                                <div class="item-chance">{{ item_data.chance }}%</div>
+                                {% if item_data.is_stattrack %}
+                                <div class="item-stattrack">StatTrak™</div>
+                                {% endif %}
+                            </div>
+                            <div class="item-image bg-{{ rarity }}">
+                                {% if 'нож' in item_data.item.name|lower %}
+                                <i class="fas fa-crosshairs"></i>
+                                {% elif 'перчатки' in item_data.item.name|lower %}
+                                <i class="fas fa-hand-paper"></i>
+                                {% elif 'ak' in item_data.item.name|lower %}
+                                <i class="fas fa-gun"></i>
+                                {% elif 'awp' in item_data.item.name|lower %}
+                                <i class="fas fa-bullseye"></i>
+                                {% else %}
+                                <i class="fas fa-cube"></i>
+                                {% endif %}
+                            </div>
+                            <div class="item-name">{{ item_data.item.name }}</div>
+                            <div class="item-price">{{ item_data.item.price }} ₽</div>
+                            <div class="item-rarity {{ rarity }}">
+                                {% if rarity == 'ancient' %}Древний
+                                {% elif rarity == 'legendary' %}Легендарный
+                                {% elif rarity == 'epic' %}Эпический
+                                {% elif rarity == 'rare' %}Редкий
+                                {% elif rarity == 'common' %}Обычный
+                                {% else %}{{ rarity|title }}{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if not items_by_rarity %}
+            <div class="no-items">
+                <i class="fas fa-box-open"></i>
+                <h3>Предметы еще не добавлены</h3>
+                <p>Администратор еще не добавил предметы в этот кейс.</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+
+    <section class="related-cases-section">
+        <div class="container">
+            <h2 class="section-title">Другие кейсы</h2>
+            <div class="cases-grid-small">
+                {% for other_case in popular_cases %}
+                    {% if other_case.id != case.id %}
+                    <a href="{% url 'case_detail' other_case.id %}" class="case-card-small">
+                        <div class="case-image-small">
+                            {% if other_case.image %}
+                                <img src="{{ other_case.image.url }}" alt="{{ other_case.name }}">
+                            {% else %}
+                                <i class="fas fa-box"></i>
+                            {% endif %}
+                        </div>
+                        <div class="case-name-small">{{ other_case.name }}</div>
+                        <div class="case-price-small">{{ other_case.price }} ₽</div>
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
