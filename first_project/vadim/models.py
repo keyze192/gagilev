@@ -1,22 +1,26 @@
 from django.db import models
 
 class Users(models.Model):
-    user_name = models.CharField(verbose_name='имя пользователя', max_length=50)
-    email = models.EmailField("почта", max_length=255)
+    user_name = models.CharField(verbose_name='имя пользователя', max_length=50, blank=True, null=True)
+    email = models.EmailField("почта", max_length=255, blank=True, null=True)
     balance = models.IntegerField("баланс аккаунта", default=0)
-    trade_link = models.TextField('ссылка для обмена')
-    is_admin = models.BooleanField("admin", default= False)
+    trade_link = models.TextField('ссылка для обмена', blank=True)
+    is_admin = models.BooleanField("admin", default=False)
+    steam_id = models.CharField("Steam ID", max_length=100, unique=True, blank=True, null=True)
+    steam_avatar = models.URLField("аватар Steam", blank=True, null=True)
+    steam_profile_url = models.URLField("профиль Steam", blank=True, null=True)
     
     class Meta:
         verbose_name = "user"
         verbose_name_plural = "users"
         ordering = ["user_name", "balance"]
         indexes = [
-            models.Index(fields=["user_name"])
+            models.Index(fields=["user_name"]),
+            models.Index(fields=["steam_id"]),
         ]
     
     def __str__(self):
-        return f"{self.user_name}"
+        return self.user_name or f"Steam User {self.steam_id}"
 
 class Items(models.Model):
     name = models.CharField(verbose_name='название предмета', max_length=255)

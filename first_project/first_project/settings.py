@@ -44,6 +44,9 @@ INSTALLED_APPS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+STEAM_API_KEY = '10058419C13F79217EF7916C3B7D0316'
+STEAM_RETURN_URL = 'http://127.0.0.1:8000/steam/callback/'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

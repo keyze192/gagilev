@@ -1,0 +1,62 @@
+{% extends "index.html" %}
+
+{% block title %}LUCK-BATTLE - Профиль{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <section class="profile-section">
+        <div class="container">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        {% if profile.steam_avatar %}
+                            <img src="{{ profile.steam_avatar }}" alt="Steam Avatar" class="steam-avatar">
+                        {% else %}
+                            <i class="fas fa-user-circle"></i>
+                        {% endif %}
+                    </div>
+                    <h1>{{ user.username }}</h1>
+                    <p class="profile-email">{{ user.email|default:"Email не указан" }}</p>
+                    
+                    {% if profile.steam_id %}
+                        <div class="steam-connected">
+                            <i class="fab fa-steam"></i>
+                            <span>Steam подключен</span>
+                            <a href="{% url 'steam_disconnect' %}" class="btn-disconnect-steam" onclick="return confirm('Отвязать Steam аккаунт?')">
+                                <i class="fas fa-unlink"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ profile.balance|default:"1000" }} ₽</div>
+                        <div class="stat-label">Баланс</div>
+                    </div>
+                </div>
+
+                {% if not profile.steam_id %}
+                    <div class="steam-connect-section">
+                        <p>Подключите Steam аккаунт для дополнительных возможностей:</p>
+                        <a href="{% url 'steam_login' %}" class="steam-connect-btn">
+                            <i class="fab fa-steam"></i>
+                            Подключить Steam
+                        </a>
+                    </div>
+                {% endif %}
+
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

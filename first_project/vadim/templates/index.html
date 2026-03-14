@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}LUCK-BATTLE{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/reset.css">
+    <link rel="stylesheet" href="/static/css/auth.css">
 </head>
 <body>
     <header>
@@ -22,19 +24,65 @@
                         <li><a href="{% url 'upgrade' %}" {% if request.resolver_match.url_name == 'upgrade' %}class="active"{% endif %}><i class="fas fa-archive"></i>Апгрейд</a></li>
                     </ul>
                 </nav>
+                
                 <div class="user-actions">
-                    <div class="balance">
-                        <i class="fas fa-coins"></i>
-                        Баланс: 1000000000000 ₽
-                    </div>
-                    <button class="btn">
-                        <i class="fas fa-user"></i>
-                        Войти
-                    </button>
+                    {% if user.is_authenticated %}
+                        <div class="balance" title="Ваш баланс">
+                            <i class="fas fa-coins"></i>
+                            {% with user_profile=user.users_set.first %}
+                                {% if user_profile %}
+                                    <span class="balance-amount">{{ user_profile.balance }} ₽</span>
+                                {% else %}
+                                    <span class="balance-amount">1000 ₽</span>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="user-menu">
+                            <button class="btn user-menu-btn" type="button">
+                                <i class="fas fa-user-circle"></i>
+                                <span>{{ user.username }}</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                            <div class="user-dropdown">
+                                <a href="{% url 'profile' %}" class="dropdown-item">
+                                    <i class="fas fa-id-card"></i>
+                                    Профиль
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{% url 'logout' %}" class="dropdown-item logout">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Выйти
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Войти
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-outline">
+                            <i class="fas fa-user-plus"></i>
+                            Регистрация
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </header>
+
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <main>
         {% block content %}
@@ -70,11 +118,32 @@
                 </div>
             </div>
             <div class="copyright">
-                &copy; 2025 LUCK-BATTLE. Все права защищены.
+                &copy; 2026 LUCK-BATTLE. Все права защищены.
             </div>
         </div>
     </footer>
 
     <script src="/static/js/script.js"></script>
+    <script>
+        document.querySelectorAll('.close').forEach(button => {
+            button.addEventListener('click', function() {
+                this.closest('.alert').remove();
+            });
+        });
+        const userMenuBtn = document.querySelector('.user-menu-btn');
+        if (userMenuBtn) {
+            userMenuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const dropdown = this.nextElementSibling;
+                dropdown.classList.toggle('show');
+            });
+        }
+        document.addEventListener('click', function() {
+            const dropdowns = document.querySelectorAll('.user-dropdown.show');
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('show');
+            });
+        });
+    </script>
 </body>
 </html>
