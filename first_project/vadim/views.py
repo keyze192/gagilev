@@ -7,6 +7,8 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from .models import Cases, Chance, Items, Users, Upgrade, Contract
 from .steam import SteamAPI
+import secrets
+import string
 
 def index(request):
     all_cases = Cases.objects.all()
@@ -16,116 +18,130 @@ def index(request):
     }
     return render(request, 'main.html', context)
 
-@csrf_protect
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        user = authenticate(request, username=username, password=password)
-        
-        if user is not None:
-            login(request, user)
-            try:
-                user_profile = Users.objects.get(user_name=user.username)
-                if user_profile.email != user.email:
-                    user_profile.email = user.email
-                    user_profile.save()
-            except Users.DoesNotExist:
-                user_profile = Users.objects.create(
-                    user_name=user.username,
-                    email=user.email,
-                    balance=1000,
-                    trade_link=''
-                )
-            except Exception as e:
-                try:
-                    user_profile = Users.objects.create(
-                        user_name=user.username,
-                        balance=1000,
-                        trade_link=''
-                    )
-                except:
-                    pass
-            
-            messages.success(request, 'Вы успешно вошли в систему!')
-            return redirect('main')
-        else:
-            messages.error(request, 'Неверное имя пользователя или пароль.')
-    
-    return render(request, 'login.html')
+@csrf_exempt
+def steam_login(request):
+    """
+    Перенаправляет пользователя на Steam для авторизации
+    """
+    steam_api = SteamAPI()
+    login_url = steam_api.get_login_url()
+    return redirect(login_url)
 
-@csrf_protect
-def register_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        password2 = request.POST.get('password2')
-        if password != password2:
-            messages.error(request, 'Пароли не совпадают.')
-            return render(request, 'register.html')
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Пользователь с таким именем уже существует.')
-            return render(request, 'register.html')
-        
-        if email and User.objects.filter(email=email).exists():
-            messages.error(request, 'Пользователь с такой почтой уже существует.')
-            return render(request, 'register.html')
-        user = User.objects.create_user(
-            username=username,
-            email=email if email else '',
-            password=password
-        )
-        try:
-            Users.objects.create(
-                user_name=username,
-                email=email if email else '',
-                balance=1000,
-                trade_link=''
-            )
-        except Exception as e:
-            try:
-                Users.objects.create(
-                    user_name=username,
-                    balance=1000,
-                    trade_link=''
-                )
-            except:
-                pass
-        login(request, user)
-        messages.success(request, 'Регистрация прошла успешно! Вам начислено 1000 ₽')
+@csrf_exempt
+def steam_callback(request):
+    """
+    Обрабатывает callback от Steam после авторизации
+    """
+    steam_api = SteamAPI()
+    steam_id = steam_api.validate_steam_response(request)
+    
+    if not steam_id:
+        messages.error(request, 'Ошибка авторизации через Steam')
         return redirect('main')
     
-    return render(request, 'register.html')
+    player_data = steam_api.get_player_summary(steam_id)
+    
+    if not player_data:
+        messages.error(request, 'Не удалось получить данные из Steam')
+        return redirect('main')
+    
+    steam_username = player_data.get('personaname', f'steam_user_{steam_id[-6:]}')
+    steam_avatar = player_data.get('avatarfull', '')
+    steam_profile_url = player_data.get('profileurl', '')
+    steam_realname = player_data.get('realname', '')
+    steam_country = player_data.get('loccountrycode', '')
+    steam_created_at = player_data.get('timecreated')
+    
+    try:
 
-def logout_view(request):
-    logout(request)
-    messages.success(request, 'Вы вышли из системы.')
+        user_profile = Users.objects.get(steam_id=steam_id)
+        django_user = user_profile.user
+
+        user_profile.steam_avatar = steam_avatar
+        user_profile.steam_username = steam_username
+        if steam_realname:
+            user_profile.steam_realname = steam_realname
+        if steam_country:
+            user_profile.steam_country = steam_country
+        user_profile.steam_profile_url = steam_profile_url
+        user_profile.save()
+        
+        messages.success(request, f'С возвращением, {steam_username}!')
+        
+    except Users.DoesNotExist:
+
+        base_username = f"steam_{steam_id[-8:]}"
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}_{counter}"
+            counter += 1
+
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        random_password = ''.join(secrets.choice(alphabet) for _ in range(32))
+
+        django_user = User.objects.create_user(
+            username=username,
+            password=random_password,
+            email=''
+        )
+
+        user_profile = Users.objects.create(
+            user=django_user,
+            user_name=username,
+            email='',
+            balance=1000,
+            trade_link='',
+            is_admin=False,
+            steam_id=steam_id,
+            steam_username=steam_username,
+            steam_avatar=steam_avatar,
+            steam_profile_url=steam_profile_url,
+            steam_realname=steam_realname,
+            steam_country=steam_country,
+            steam_created_at=steam_created_at
+        )
+        
+        messages.success(request, f'Добро пожаловать, {steam_username}! Вам начислено 1000 ₽')
+
+    login(request, django_user)
+    
     return redirect('main')
 
 @login_required
 def profile_view(request):
     try:
-        user_profile = Users.objects.get(user_name=request.user.username)
+        user_profile = Users.objects.get(user=request.user)
     except Users.DoesNotExist:
-        try:
-            user_profile = Users.objects.create(
-                user_name=request.user.username,
-                email=request.user.email if request.user.email else '',
-                balance=1000,
-                trade_link=''
-            )
-        except:
-            user_profile = None
-    except:
-        user_profile = None
+
+        user_profile = Users.objects.create(
+            user=request.user,
+            user_name=request.user.username,
+            balance=1000,
+            trade_link=''
+        )
     
     context = {
         'profile': user_profile,
+        'steam_connected': user_profile.steam_id is not None,
+        'steam_data': {
+            'username': user_profile.steam_username,
+            'avatar': user_profile.steam_avatar,
+            'profile_url': user_profile.steam_profile_url,
+            'realname': user_profile.steam_realname,
+            'country': user_profile.steam_country,
+            'steam_id': user_profile.steam_id,
+            'created_at': user_profile.steam_created_at,
+        } if user_profile.steam_id else None
     }
     
     return render(request, 'profile.html', context)
+
+@login_required
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Вы вышли из системы.')
+    return redirect('main')
 
 def upgrade_page(request):
     return render(request, 'upgrade.html')
@@ -207,83 +223,10 @@ def filter_cases(request):
         })
     
     return JsonResponse({'success': False, 'error': 'Метод не разрешен'})
-def steam_login(request):
-    """
-    Перенаправляет пользователя на Steam для авторизации
-    """
-    steam_api = SteamAPI()
-    login_url = steam_api.get_login_url()
-    return redirect(login_url)
+def login_redirect(request):
+    """Перенаправляет на Steam авторизацию"""
+    return redirect('steam_login')
 
-@csrf_exempt
-def steam_callback(request):
-    """
-    Обрабатывает callback от Steam после авторизации
-    """
-    steam_api = SteamAPI()
-    steam_id = steam_api.validate_steam_response(request)
-    
-    if not steam_id:
-        messages.error(request, 'Ошибка авторизации через Steam')
-        return redirect('login')
-    player_data = steam_api.get_player_summary(steam_id)
-    
-    if not player_data:
-        messages.error(request, 'Не удалось получить данные из Steam')
-        return redirect('login')
-    steam_username = player_data.get('personaname', f'steam_user_{steam_id[-6:]}')
-    steam_avatar = player_data.get('avatarfull', '')
-    steam_profile_url = player_data.get('profileurl', '')
-    try:
-        user_profile = Users.objects.get(steam_id=steam_id)
-        django_user = User.objects.get(username=user_profile.user_name)
-    except Users.DoesNotExist:
-        base_username = f"steam_{steam_id[-8:]}"
-        username = base_username
-        counter = 1
-        while User.objects.filter(username=username).exists():
-            username = f"{base_username}_{counter}"
-            counter += 1
-        django_user = User.objects.create_user(
-            username=username,
-            password=User.objects.make_random_password(),  
-            email=''
-        )
-        user_profile = Users.objects.create(
-            user_name=username,
-            email='',
-            balance=1000,
-            trade_link='',
-            is_admin=False,
-            steam_id=steam_id,
-            steam_avatar=steam_avatar,
-            steam_profile_url=steam_profile_url
-        )
-        
-        messages.success(request, f'Добро пожаловать, {steam_username}! Вам начислено 1000 ₽')
-    login(request, django_user)
-    if user_profile.steam_avatar != steam_avatar:
-        user_profile.steam_avatar = steam_avatar
-        user_profile.steam_profile_url = steam_profile_url
-        user_profile.save()
-    
-    return redirect('main')
-
-def steam_disconnect(request):
-    """
-    Отвязывает Steam аккаунт от профиля
-    """
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
-    try:
-        user_profile = Users.objects.get(user_name=request.user.username)
-        user_profile.steam_id = None
-        user_profile.steam_avatar = None
-        user_profile.steam_profile_url = None
-        user_profile.save()
-        messages.success(request, 'Steam аккаунт успешно отвязан')
-    except Users.DoesNotExist:
-        messages.error(request, 'Профиль не найден')
-    
-    return redirect('profile')
+def register_redirect(request):
+    """Перенаправляет на Steam авторизацию"""
+    return redirect('steam_login')

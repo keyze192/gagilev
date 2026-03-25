@@ -1,6 +1,9 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Users(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='profile')
     user_name = models.CharField(verbose_name='имя пользователя', max_length=50, blank=True, null=True)
     email = models.EmailField("почта", max_length=255, blank=True, null=True)
     balance = models.IntegerField("баланс аккаунта", default=0)
@@ -9,18 +12,35 @@ class Users(models.Model):
     steam_id = models.CharField("Steam ID", max_length=100, unique=True, blank=True, null=True)
     steam_avatar = models.URLField("аватар Steam", blank=True, null=True)
     steam_profile_url = models.URLField("профиль Steam", blank=True, null=True)
+    steam_username = models.CharField("Steam ник", max_length=255, blank=True, null=True)
+    steam_realname = models.CharField("Настоящее имя", max_length=255, blank=True, null=True)
+    steam_country = models.CharField("Страна", max_length=100, blank=True, null=True)
+    steam_created_at = models.DateTimeField("Дата регистрации Steam", blank=True, null=True)
+    last_login_steam = models.DateTimeField("Последний вход через Steam", auto_now=True)
+    created_at = models.DateTimeField("Дата регистрации", auto_now_add=True)
     
     class Meta:
         verbose_name = "user"
         verbose_name_plural = "users"
-        ordering = ["user_name", "balance"]
+        ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["user_name"]),
             models.Index(fields=["steam_id"]),
         ]
     
     def __str__(self):
-        return self.user_name or f"Steam User {self.steam_id}"
+        return self.steam_username or self.user_name or f"Steam User {self.steam_id}"
+    
+    @property
+    def display_name(self):
+        """Возвращает отображаемое имя (сначала Steam ник, потом username)"""
+        return self.steam_username or self.user_name or f"User_{self.steam_id[-8:]}"
+    
+    @property
+    def is_steam_connected(self):
+        """Проверяет подключен ли Steam"""
+        return bool(self.steam_id)
+        
 
 class Items(models.Model):
     name = models.CharField(verbose_name='название предмета', max_length=255)
@@ -112,3 +132,31 @@ class Chance(models.Model):
     
     def __str__(self):
         return f"{self.item}"
+    
+class CaseOpening(models.Model):
+    """Модель для истории открытий кейсов"""
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, verbose_name='пользователь')
+    case = models.ForeignKey(Cases, on_delete=models.CASCADE, verbose_name='кейс')
+    item = models.ForeignKey(Items, on_delete=models.CASCADE, verbose_name='выпавший предмет')
+    opened_at = models.DateTimeField("дата открытия", auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "открытие кейса"
+        verbose_name_plural = "открытия кейсов"
+        ordering = ["-opened_at"]
+    
+    def __str__(self):
+        return f"{self.user} открыл {self.case} и получил {self.item}"
+    
+class UserInventory(models.Model):
+    """Инвентарь пользователя"""
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='inventory')
+    item = models.ForeignKey(Items, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
+    obtained_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'item']
+    
+    def __str__(self):
+        return f"{self.user} - {self.item} x{self.quantity}"

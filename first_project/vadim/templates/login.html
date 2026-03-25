@@ -1,6 +1,6 @@
 {% extends "index.html" %}
 
-{% block title %}LUCK-BATTLE - Вход{% endblock %}
+{% block title %}LUCK-BATTLE - Вход через Steam{% endblock %}
 
 {% block content %}
 <div class="auth-page">
@@ -9,9 +9,9 @@
             <div class="auth-container">
                 <div class="auth-card">
                     <div class="auth-header">
-                        <i class="fas fa-dice"></i>
-                        <h1>Вход в аккаунт</h1>
-                        <p>Добро пожаловать обратно! Войдите, чтобы продолжить.</p>
+                        <i class="fab fa-steam"></i>
+                        <h1>Вход через Steam</h1>
+                        <p>Авторизуйтесь с помощью вашего Steam аккаунта</p>
                     </div>
 
                     {% if messages %}
@@ -24,56 +24,31 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    <form method="POST" action="{% url 'login' %}" class="auth-form">
-                        {% csrf_token %}
-                        
-                        <div class="form-group">
-                            <label for="username">
-                                <i class="fas fa-user"></i>
-                                Имя пользователя
-                            </label>
-                            <input type="text" 
-                                   id="username" 
-                                   name="username" 
-                                   placeholder="Введите имя пользователя"
-                                   required>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="password">
-                                <i class="fas fa-lock"></i>
-                                Пароль
-                            </label>
-                            <input type="password" 
-                                   id="password" 
-                                   name="password" 
-                                   placeholder="Введите пароль"
-                                   required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary auth-btn">
-                            <i class="fas fa-sign-in-alt"></i>
-                            Войти
-                        </button>
-                    </form>
-
-                    <div class="auth-divider">
-                        <span>или</span>
-                    </div>
-                    <div class="social-auth">
-                        <a href="{% url 'steam_login' %}" class="social-btn steam-btn">
+                    <div class="steam-auth-section">
+                        <a href="{% url 'steam_login' %}" class="steam-login-btn">
                             <i class="fab fa-steam"></i>
-                            Войти через Steam
+                            <span>Войти через Steam</span>
                         </a>
+                        
+                        <div class="auth-info">
+                            <div class="info-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <p>Безопасная авторизация через официальный сервис Steam</p>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-gift"></i>
+                                <p>Новым пользователям: <strong>1000 ₽</strong> на баланс</p>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-user-check"></i>
+                                <p>Автоматическое создание аккаунта при первом входе</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="auth-footer">
-                        <p>Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
-                    </div>
-
-                    <div class="bonus-info">
-                        <i class="fas fa-gift"></i>
-                        <p>Зарегистрируйтесь через Steam и получите <strong>1000 ₽</strong> на баланс!</p>
+                        <p>Входя через Steam, вы соглашаетесь с <a href="#">условиями использования</a></p>
                     </div>
                 </div>
             </div>

@@ -2,6 +2,10 @@
 
 {% block title %}LUCK-BATTLE - {{ case.name }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/case.css">
+{% endblock %}
+
 {% block content %}
 <div class="case-detail-page">
 
@@ -20,7 +24,7 @@
                     </div>
                     <div class="case-info">
                         <h1 class="case-title">{{ case.name }}</h1>
-                        <div class="case-price-large">{{ case.price }} ₽</div>
+                        <div class="case-price-large" id="casePrice">{{ case.price }} ₽</div>
                         <p class="case-description">{{ case.description|default:"Откройте этот кейс, чтобы получить уникальные предметы!" }}</p>
                         
                         <div class="case-stats">
@@ -34,7 +38,12 @@
                             </div>
                         </div>
                         
-                        <button class="btn btn-pulse open-case-btn" style="margin-top: 20px;">
+                        <div class="balance-info" id="balanceInfo">
+                            <i class="fas fa-coins"></i>
+                            Ваш баланс: <span id="userBalance">{{ request.user.profile.balance|default:1000 }}</span> ₽
+                        </div>
+                        
+                        <button class="btn btn-pulse open-case-btn" id="openCaseBtn" data-case-id="{{ case.id }}">
                             <i class="fas fa-gift"></i> Открыть за {{ case.price }} ₽
                         </button>
                     </div>
@@ -43,12 +52,45 @@
         </div>
     </section>
 
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Результат открытия</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="opening-animation" id="openingAnimation">
+                    <div class="case-spinning" id="caseSpinning">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div class="spinning-text">Открываем кейс...</div>
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+                <div class="result-content" id="resultContent" style="display: none;">
+                    <div class="won-item" id="wonItem">
+                        <div class="item-image-large" id="itemImage"></div>
+                        <div class="item-info">
+                            <div class="item-name-large" id="itemName"></div>
+                            <div class="item-price-large" id="itemPrice"></div>
+                            <div class="item-rarity-badge" id="itemRarity"></div>
+                        </div>
+                    </div>
+                    <div class="result-actions">
+                        <button class="btn btn-primary" onclick="closeModal()">Закрыть</button>
+                        <button class="btn btn-outline" onclick="openAgain()">Открыть еще</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <section class="case-items-section">
         <div class="container">
             <h2 class="section-title">Содержимое кейса</h2>
             
-
             <div class="rarity-filter">
                 <button class="rarity-filter-btn active" data-rarity="all">Все предметы</button>
                 <button class="rarity-filter-btn" data-rarity="ancient">Древние</button>
@@ -86,10 +128,6 @@
                                 <i class="fas fa-crosshairs"></i>
                                 {% elif 'перчатки' in item_data.item.name|lower %}
                                 <i class="fas fa-hand-paper"></i>
-                                {% elif 'ak' in item_data.item.name|lower %}
-                                <i class="fas fa-gun"></i>
-                                {% elif 'awp' in item_data.item.name|lower %}
-                                <i class="fas fa-bullseye"></i>
                                 {% else %}
                                 <i class="fas fa-cube"></i>
                                 {% endif %}
@@ -122,27 +160,311 @@
     </section>
 
 
-    <section class="related-cases-section">
+    <section class="case-history-section">
         <div class="container">
-            <h2 class="section-title">Другие кейсы</h2>
-            <div class="cases-grid-small">
-                {% for other_case in popular_cases %}
-                    {% if other_case.id != case.id %}
-                    <a href="{% url 'case_detail' other_case.id %}" class="case-card-small">
-                        <div class="case-image-small">
-                            {% if other_case.image %}
-                                <img src="{{ other_case.image.url }}" alt="{{ other_case.name }}">
-                            {% else %}
-                                <i class="fas fa-box"></i>
-                            {% endif %}
-                        </div>
-                        <div class="case-name-small">{{ other_case.name }}</div>
-                        <div class="case-price-small">{{ other_case.price }} ₽</div>
-                    </a>
-                    {% endif %}
-                {% endfor %}
+            <h2 class="section-title">Последние открытия</h2>
+            <div class="history-list" id="historyList">
+                <div class="loading-history">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                </div>
             </div>
         </div>
     </section>
 </div>
+
+<script>
+let currentCaseId = null;
+let progressInterval = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const openBtn = document.getElementById('openCaseBtn');
+    if (openBtn) {
+        currentCaseId = openBtn.dataset.caseId;
+        openBtn.addEventListener('click', openCase);
+    }
+    
+
+    const closeBtn = document.querySelector('.close-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeModal);
+    }
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('resultModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+
+    loadOpeningHistory();
+});
+
+async function openCase() {
+    const openBtn = document.getElementById('openCaseBtn');
+    const balanceSpan = document.getElementById('userBalance');
+    const casePrice = parseInt(openBtn.querySelector('i').nextSibling.textContent.match(/\d+/)[0]);
+    const currentBalance = parseInt(balanceSpan.textContent);
+    
+    if (currentBalance < casePrice) {
+        showMessage('Недостаточно средств! Пополните баланс.', 'error');
+        return;
+    }
+
+    openBtn.disabled = true;
+    openBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Открываем...';
+    
+
+    const modal = document.getElementById('resultModal');
+    modal.style.display = 'block';
+    
+
+    startProgressBar();
+    
+
+    const caseSpinning = document.getElementById('caseSpinning');
+    caseSpinning.classList.add('shaking');
+    
+    try {
+        const response = await fetch(`/api/open-case/${currentCaseId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+
+            balanceSpan.textContent = data.new_balance;
+            
+   
+            completeProgressBar();
+            
+
+            setTimeout(() => {
+                showResult(data.item);
+
+                if (data.item.rarity === 'legendary' || data.item.rarity === 'ancient') {
+                    createConfetti();
+                }
+
+                loadOpeningHistory();
+            }, 1500);
+            
+            showMessage(`Вы получили: ${data.item.name}!`, 'success');
+        } else {
+            stopProgressBar();
+            closeModal();
+            showMessage(data.error || 'Ошибка при открытии кейса', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        stopProgressBar();
+        closeModal();
+        showMessage('Произошла ошибка. Попробуйте позже.', 'error');
+    } finally {
+
+        openBtn.disabled = false;
+        openBtn.innerHTML = '<i class="fas fa-gift"></i> Открыть за ' + casePrice + ' ₽';
+        caseSpinning.classList.remove('shaking');
+    }
+}
+
+function startProgressBar() {
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        let width = 0;
+        progressInterval = setInterval(() => {
+            if (width >= 100) {
+                clearInterval(progressInterval);
+            } else {
+                width += 2;
+                progressBar.style.width = width + '%';
+            }
+        }, 30);
+    }
+}
+
+function completeProgressBar() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+    }
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = '100%';
+    }
+}
+
+function stopProgressBar() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+    }
+}
+
+function showResult(item) {
+    const animation = document.getElementById('openingAnimation');
+    const resultContent = document.getElementById('resultContent');
+    const itemImage = document.getElementById('itemImage');
+    const itemName = document.getElementById('itemName');
+    const itemPrice = document.getElementById('itemPrice');
+    const itemRarity = document.getElementById('itemRarity');
+    
+
+    const iconClass = item.image || getItemIcon(item.name);
+    itemImage.innerHTML = `<i class="fas ${iconClass}"></i>`;
+    
+
+    itemName.textContent = item.name;
+    itemPrice.textContent = `${item.price} ₽`;
+    itemRarity.textContent = item.rarity_name;
+    itemRarity.className = `item-rarity-badge ${item.rarity_class}`;
+    
+
+    if (item.is_stattrack) {
+        itemName.innerHTML += ' <span class="stattrack-badge">StatTrak™</span>';
+    }
+    
+
+    animation.style.display = 'none';
+    resultContent.style.display = 'block';
+
+    const wonItemDiv = document.getElementById('wonItem');
+    wonItemDiv.classList.add('glowing');
+    setTimeout(() => {
+        wonItemDiv.classList.remove('glowing');
+    }, 1000);
+}
+
+function closeModal() {
+    const modal = document.getElementById('resultModal');
+    modal.style.display = 'none';
+    
+    const animation = document.getElementById('openingAnimation');
+    const resultContent = document.getElementById('resultContent');
+    animation.style.display = 'block';
+    resultContent.style.display = 'none';
+    stopProgressBar();
+
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) {
+        progressBar.style.width = '0%';
+    }
+}
+
+function openAgain() {
+    closeModal();
+    openCase();
+}
+
+function getItemIcon(itemName) {
+    if (itemName.toLowerCase().includes('нож')) {
+        return 'fa-crosshairs';
+    } else if (itemName.toLowerCase().includes('перчатки')) {
+        return 'fa-hand-paper';
+    } else if (itemName.toLowerCase().includes('ak') || itemName.toLowerCase().includes('awp')) {
+        return 'fa-gun';
+    } else {
+        return 'fa-cube';
+    }
+}
+
+function createConfetti() {
+    const colors = ['#ff4655', '#4cd964', '#f1c40f', '#9b59b6', '#e74c3c'];
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti';
+    document.body.appendChild(confettiContainer);
+    
+    for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-piece';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.width = Math.random() * 8 + 4 + 'px';
+        confetti.style.height = Math.random() * 15 + 8 + 'px';
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+        confettiContainer.appendChild(confetti);
+    }
+    
+    setTimeout(() => {
+        confettiContainer.remove();
+    }, 3000);
+}
+
+async function loadOpeningHistory() {
+    const historyList = document.getElementById('historyList');
+    if (!historyList) return;
+    
+    try {
+        const response = await fetch(`/api/case-history/${currentCaseId}/`);
+        const data = await response.json();
+        
+        if (data.success && data.history.length > 0) {
+            historyList.innerHTML = data.history.map(item => `
+                <div class="history-item ${item.rarity}">
+                    <div class="history-user">
+                        <i class="fas fa-user-circle"></i>
+                        <span>${item.username}</span>
+                    </div>
+                    <div class="history-item-info">
+                        <span class="history-item-name">${item.item_name}</span>
+                        <span class="history-item-price">${item.item_price} ₽</span>
+                    </div>
+                    <div class="history-time">
+                        <i class="fas fa-clock"></i>
+                        ${item.time_ago}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            historyList.innerHTML = '<div class="no-history">Пока нет открытий этого кейса</div>';
+        }
+    } catch (error) {
+        console.error('Error loading history:', error);
+        historyList.innerHTML = '<div class="error-history">Не удалось загрузить историю</div>';
+    }
+}
+
+function showMessage(message, type) {
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `alert alert-${type}`;
+    messageDiv.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        ${message}
+        <button class="close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    const container = document.querySelector('.messages-container');
+    if (container) {
+        container.appendChild(messageDiv);
+
+        setTimeout(() => {
+            if (messageDiv.parentElement) {
+                messageDiv.remove();
+            }
+        }, 3000);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
 {% endblock %}

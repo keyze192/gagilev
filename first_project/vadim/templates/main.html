@@ -55,11 +55,6 @@
         </div>
         
         <div class="active-filters-minimal"></div>
-        
- 
-        <div class="loading-indicator" id="loadingIndicator">
-            <i class="fas fa-spinner fa-spin"></i> Загрузка...
-        </div>
     </div>
 </section>
 
@@ -67,10 +62,13 @@
     <section class="cases-section">
         <div class="container">
             <h2 class="section-title">Популярные кейсы</h2>
- 
+            <div class="cases-count" style="text-align: center; margin-bottom: 20px;">
+                Найдено: <span id="caseCount">{{ popular_cases|length }}</span> кейсов
+            </div>
+            
             <div class="cases-grid" id="casesContainer">
                 {% for case in popular_cases %}
-                <div class="case-card">
+                <div class="case-card" data-rarity="common">
                     <div class="case-image">
                         {% if case.image %}
                             <img src="{{ case.image.url }}" alt="{{ case.name }}">
@@ -87,7 +85,6 @@
                 {% endfor %}
             </div>
             
- 
             <div id="noResults" style="display: none; text-align: center; padding: 50px;">
                 <i class="fas fa-search" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 20px;"></i>
                 <h3 style="color: var(--text-color); margin-bottom: 10px;">Кейсы не найдены</h3>

@@ -1,0 +1,317 @@
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    position: relative;
+    background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+    margin: 5% auto;
+    padding: 0;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(255,70,85,0.3);
+    animation: slideIn 0.3s ease;
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.close-modal {
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.3s;
+}
+
+.close-modal:hover {
+    color: var(--primary-color);
+}
+
+.modal-body {
+    padding: 30px;
+    text-align: center;
+}
+
+
+.opening-animation {
+    text-align: center;
+    padding: 40px;
+}
+
+.case-spinning {
+    font-size: 80px;
+    animation: spin 1s linear infinite;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.spinning-text {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+.result-content {
+    animation: fadeIn 0.5s ease;
+}
+
+
+.won-item {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.item-image-large {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    animation: bounce 0.5s ease;
+}
+
+.item-name-large {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.item-price-large {
+    font-size: 20px;
+    color: gold;
+    margin-bottom: 10px;
+}
+
+.item-rarity-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.item-rarity-badge.common {
+    background: rgba(149, 165, 166, 0.2);
+    color: #95a5a6;
+    border: 1px solid rgba(149, 165, 166, 0.3);
+}
+
+.item-rarity-badge.rare {
+    background: rgba(76, 217, 100, 0.2);
+    color: #4cd964;
+    border: 1px solid rgba(76, 217, 100, 0.3);
+}
+
+.item-rarity-badge.epic {
+    background: rgba(155, 89, 182, 0.2);
+    color: #9b59b6;
+    border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
+.item-rarity-badge.legendary {
+    background: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.item-rarity-badge.ancient {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.result-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.balance-info {
+    background: rgba(255,215,0,0.1);
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.balance-info span {
+    color: gold;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.open-case-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.glowing {
+    animation: glow 0.5s ease-in-out 3;
+}
+
+.stattrack-badge {
+    background: linear-gradient(135deg, #ff4655, #ff6b7c);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    margin-left: 8px;
+    display: inline-block;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(255,255,255,0.3);
+    }
+    50% {
+        box-shadow: 0 0 30px var(--primary-color);
+    }
+}
+
+.item-card.common.glowing {
+    animation: glow-green 0.5s ease-in-out 3;
+}
+
+.item-card.rare.glowing {
+    animation: glow-blue 0.5s ease-in-out 3;
+}
+
+.item-card.epic.glowing {
+    animation: glow-purple 0.5s ease-in-out 3;
+}
+
+.item-card.legendary.glowing {
+    animation: glow-gold 0.5s ease-in-out 3;
+}
+
+.item-card.ancient.glowing {
+    animation: glow-red 0.5s ease-in-out 3;
+}
+
+@keyframes glow-green {
+    0%, 100% { box-shadow: 0 0 5px #4cd964; }
+    50% { box-shadow: 0 0 30px #4cd964; }
+}
+
+@keyframes glow-blue {
+    0%, 100% { box-shadow: 0 0 5px #4a90e2; }
+    50% { box-shadow: 0 0 30px #4a90e2; }
+}
+
+@keyframes glow-purple {
+    0%, 100% { box-shadow: 0 0 5px #9b59b6; }
+    50% { box-shadow: 0 0 30px #9b59b6; }
+}
+
+@keyframes glow-gold {
+    0%, 100% { box-shadow: 0 0 5px #f1c40f; }
+    50% { box-shadow: 0 0 40px #f1c40f; }
+}
+
+@keyframes glow-red {
+    0%, 100% { box-shadow: 0 0 5px #e74c3c; }
+    50% { box-shadow: 0 0 50px #e74c3c; }
+}
+
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.case-spinning.shaking {
+    animation: shake 0.3s ease-in-out, spin 1s linear infinite;
+}
+
+.confetti {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 20px;
+    background: var(--primary-color);
+    animation: fall 3s linear forwards;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.progress-container {
+    margin: 20px 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 4px;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background: var(--primary-color);
+    transition: width 1.5s ease;
+}

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.urls import reverse
 from urllib.parse import parse_qs, urlparse
 import re
+from datetime import datetime
 
 class SteamAPI:
     def __init__(self):
@@ -64,8 +65,51 @@ class SteamAPI:
             data = response.json()
             
             if data and 'response' in data and 'players' in data['response'] and data['response']['players']:
-                return data['response']['players'][0]
+                player = data['response']['players'][0]
+                
+                created_at = None
+                if 'timecreated' in player:
+                    created_at = datetime.fromtimestamp(player['timecreated'])
+                
+                return {
+                    'steam_id': player.get('steamid'),
+                    'personaname': player.get('personaname', ''),
+                    'profileurl': player.get('profileurl', ''),
+                    'avatar': player.get('avatar', ''),
+                    'avatarmedium': player.get('avatarmedium', ''),
+                    'avatarfull': player.get('avatarfull', ''),
+                    'realname': player.get('realname', ''),
+                    'loccountrycode': player.get('loccountrycode', ''),
+                    'timecreated': created_at,
+                    'personastate': player.get('personastate', 0),
+                    'communityvisibilitystate': player.get('communityvisibilitystate', 0),
+                }
         except Exception as e:
             print(f"Ошибка при получении данных Steam: {e}")
         
         return None
+    
+    def get_player_friends(self, steam_id):
+        """
+        Получает список друзей пользователя (опционально)
+        """
+        if not self.api_key:
+            return []
+        
+        url = f"http://api.steampowered.com/ISteamUser/GetFriendList/v0001/"
+        params = {
+            'key': self.api_key,
+            'steamid': steam_id,
+            'relationship': 'friend'
+        }
+        
+        try:
+            response = requests.get(url, params=params)
+            data = response.json()
+            
+            if data and 'friendslist' in data:
+                return data['friendslist'].get('friends', [])
+        except:
+            pass
+        
+        return []

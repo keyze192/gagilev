@@ -478,3 +478,243 @@
 .steam-btn i {
     font-size: 20px;
 }
+
+.steam-auth-section {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.steam-login-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    background: linear-gradient(135deg, #171a21 0%, #2a475e 100%);
+    color: white;
+    padding: 18px 30px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.steam-login-btn i {
+    font-size: 28px;
+}
+
+.steam-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(42, 71, 94, 0.5);
+    background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%);
+}
+
+.auth-info {
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item i {
+    font-size: 20px;
+    color: var(--primary-color);
+    width: 30px;
+}
+
+.info-item p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.info-item strong {
+    color: gold;
+}
+
+.profile-avatar {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+}
+
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+}
+
+.profile-avatar i {
+    font-size: 100px;
+    color: var(--text-secondary);
+}
+
+.steam-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #171a21;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--primary-color);
+}
+
+.steam-badge i {
+    font-size: 18px;
+    color: #ffffff;
+}
+
+.steam-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(42, 71, 94, 0.3);
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin: 10px 0;
+}
+
+.steam-status i {
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.profile-realname {
+    color: var(--text-secondary);
+    margin-top: 5px;
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.steam-info-section {
+    margin: 30px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+}
+
+.section-subtitle {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.info-item {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.steam-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.steam-link:hover {
+    text-decoration: underline;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 70, 85, 0.5);
+    color: var(--primary-color);
+}
+
+.logout-btn:hover {
+    background: rgba(255, 70, 85, 0.1);
+    border-color: var(--primary-color);
+}
+
+.user-avatar-mini {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.steam-login-header {
+    background: linear-gradient(135deg, #171a21 0%, #2a475e 100%);
+    padding: 10px 20px;
+}
+
+.steam-login-header:hover {
+    background: linear-gradient(135deg, #1b2838 0%, #2a475e 100%);
+}

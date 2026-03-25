@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views_api
 
 urlpatterns = [
     path('', views.index, name='main'),
@@ -9,12 +10,16 @@ urlpatterns = [
     path('filter-cases/', views.filter_cases, name='filter_cases'),
     
 
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
-    path('profile/', views.profile_view, name='profile'),
-
     path('steam/login/', views.steam_login, name='steam_login'),
     path('steam/callback/', views.steam_callback, name='steam_callback'),
-    path('steam/disconnect/', views.steam_disconnect, name='steam_disconnect'),
+    path('logout/', views.logout_view, name='logout'),
+    path('profile/', views.profile_view, name='profile'),
+    
+
+    path('login/', views.steam_login, name='login'),
+    path('register/', views.steam_login, name='register'),
+    
+
+    path('api/open-case/<int:case_id>/', views_api.open_case, name='api_open_case'),
+    path('api/case-history/<int:case_id>/', views_api.case_history, name='api_case_history'),
 ]

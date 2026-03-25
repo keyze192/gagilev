@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/reset.css">
     <link rel="stylesheet" href="/static/css/auth.css">
+    <link rel="stylesheet" href="/static/css/case.css">
 </head>
 <body>
     <header>
@@ -29,19 +30,21 @@
                     {% if user.is_authenticated %}
                         <div class="balance" title="Ваш баланс">
                             <i class="fas fa-coins"></i>
-                            {% with user_profile=user.users_set.first %}
-                                {% if user_profile %}
-                                    <span class="balance-amount">{{ user_profile.balance }} ₽</span>
-                                {% else %}
-                                    <span class="balance-amount">1000 ₽</span>
-                                {% endif %}
+                            {% with user_profile=user.profile %}
+                                <span class="balance-amount">{{ user_profile.balance|default:"1000" }} ₽</span>
                             {% endwith %}
                         </div>
                         <div class="user-menu">
                             <button class="btn user-menu-btn" type="button">
-                                <i class="fas fa-user-circle"></i>
-                                <span>{{ user.username }}</span>
-                                <i class="fas fa-chevron-down"></i>
+                                {% with user_profile=user.profile %}
+                                    {% if user_profile.steam_avatar %}
+                                        <img src="{{ user_profile.steam_avatar }}" class="user-avatar-mini" alt="avatar">
+                                    {% else %}
+                                        <i class="fas fa-user-circle"></i>
+                                    {% endif %}
+                                    <span>{{ user_profile.steam_username|default:user.username }}</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                {% endwith %}
                             </button>
                             <div class="user-dropdown">
                                 <a href="{% url 'profile' %}" class="dropdown-item">
@@ -56,13 +59,9 @@
                             </div>
                         </div>
                     {% else %}
-                        <a href="{% url 'login' %}" class="btn">
-                            <i class="fas fa-sign-in-alt"></i>
-                            Войти
-                        </a>
-                        <a href="{% url 'register' %}" class="btn btn-outline">
-                            <i class="fas fa-user-plus"></i>
-                            Регистрация
+                        <a href="{% url 'steam_login' %}" class="btn steam-login-header">
+                            <i class="fab fa-steam"></i>
+                            Войти через Steam
                         </a>
                     {% endif %}
                 </div>
@@ -123,7 +122,7 @@
         </div>
     </footer>
 
-    <script src="/static/js/script.js"></script>
+    <script src="/static/js/case-filters.js"></script>
     <script>
         document.querySelectorAll('.close').forEach(button => {
             button.addEventListener('click', function() {

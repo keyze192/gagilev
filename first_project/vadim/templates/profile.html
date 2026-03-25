@@ -8,48 +8,137 @@
         <div class="container">
             <div class="profile-card">
                 <div class="profile-header">
+                    {% if steam_connected and steam_data.avatar %}
                     <div class="profile-avatar">
-                        {% if profile.steam_avatar %}
-                            <img src="{{ profile.steam_avatar }}" alt="Steam Avatar" class="steam-avatar">
-                        {% else %}
-                            <i class="fas fa-user-circle"></i>
-                        {% endif %}
-                    </div>
-                    <h1>{{ user.username }}</h1>
-                    <p class="profile-email">{{ user.email|default:"Email не указан" }}</p>
-                    
-                    {% if profile.steam_id %}
-                        <div class="steam-connected">
+                        <img src="{{ steam_data.avatar }}" alt="{{ steam_data.username }}" class="steam-avatar">
+                        <div class="steam-badge">
                             <i class="fab fa-steam"></i>
-                            <span>Steam подключен</span>
-                            <a href="{% url 'steam_disconnect' %}" class="btn-disconnect-steam" onclick="return confirm('Отвязать Steam аккаунт?')">
-                                <i class="fas fa-unlink"></i>
-                            </a>
                         </div>
+                    </div>
+                    {% else %}
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <h1>{{ steam_data.username|default:profile.user_name }}</h1>
+                    
+                    {% if steam_connected %}
+                    <div class="steam-status">
+                        <i class="fab fa-steam"></i>
+                        <span class="status-text">Подключен через Steam</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if steam_data.realname %}
+                    <p class="profile-realname">
+                        <i class="fas fa-user"></i>
+                        {{ steam_data.realname }}
+                    </p>
                     {% endif %}
                 </div>
                 
                 <div class="profile-stats">
                     <div class="stat-item">
-                        <div class="stat-value">{{ profile.balance|default:"1000" }} ₽</div>
+                        <div class="stat-value">{{ profile.balance }} ₽</div>
                         <div class="stat-label">Баланс</div>
                     </div>
-                </div>
-
-                {% if not profile.steam_id %}
-                    <div class="steam-connect-section">
-                        <p>Подключите Steam аккаунт для дополнительных возможностей:</p>
-                        <a href="{% url 'steam_login' %}" class="steam-connect-btn">
+                    
+                    {% if steam_connected %}
+                    <div class="stat-item">
+                        <div class="stat-value">
                             <i class="fab fa-steam"></i>
-                            Подключить Steam
-                        </a>
+                            Steam ID
+                        </div>
+                        <div class="stat-label">{{ steam_data.steam_id|slice:"-8:" }}</div>
                     </div>
+                    {% endif %}
+                    
+                    <div class="stat-item">
+                        <div class="stat-value">{{ profile.created_at|date:"d.m.Y" }}</div>
+                        <div class="stat-label">Дата регистрации</div>
+                    </div>
+                </div>
+                
+                {% if steam_connected %}
+                <div class="steam-info-section">
+                    <h3 class="section-subtitle">Информация Steam</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fab fa-steam"></i>
+                                Steam профиль
+                            </div>
+                            <div class="info-value">
+                                <a href="{{ steam_data.profile_url }}" target="_blank" class="steam-link">
+                                    {{ steam_data.username }}
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        {% if steam_data.realname %}
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-id-card"></i>
+                                Настоящее имя
+                            </div>
+                            <div class="info-value">{{ steam_data.realname }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if steam_data.country %}
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Страна
+                            </div>
+                            <div class="info-value">
+                                <i class="flag-icon flag-icon-{{ steam_data.country|lower }}"></i>
+                                {{ steam_data.country }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if steam_data.created_at %}
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                Аккаунт Steam создан
+                            </div>
+                            <div class="info-value">{{ steam_data.created_at|date:"d.m.Y" }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="info-item">
+                            <div class="info-label">
+                                <i class="fas fa-clock"></i>
+                                Последний вход
+                            </div>
+                            <div class="info-value">{{ profile.last_login_steam|date:"d.m.Y H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
-
+                
+                <div class="profile-actions">
+                    <a href="{% url 'main' %}" class="btn btn-primary">
+                        <i class="fas fa-dice"></i>
+                        К открытию кейсов
+                    </a>
+                    
+                    <a href="{% url 'logout' %}" class="btn btn-outline logout-btn" 
+                       onclick="return confirm('Вы уверены, что хотите выйти?')">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти из аккаунта
+                    </a>
+                </div>
+                
                 {% if messages %}
                 <div class="messages">
                     {% for message in messages %}
                     <div class="message {{ message.tags }}">
+                        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
                         {{ message }}
                     </div>
                     {% endfor %}
