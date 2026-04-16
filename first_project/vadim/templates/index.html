@@ -31,7 +31,7 @@
                         <div class="balance" title="Ваш баланс">
                             <i class="fas fa-coins"></i>
                             {% with user_profile=user.profile %}
-                                <span class="balance-amount">{{ user_profile.balance|default:"1000" }} ₽</span>
+                                <span class="balance-amount" data-rub-value="{{ user_profile.balance|default:'1000' }}">{{ user_profile.balance|default:"1000" }} ₽</span>
                             {% endwith %}
                         </div>
                         <div class="user-menu">
@@ -123,6 +123,7 @@
     </footer>
 
     <script src="/static/js/case-filters.js"></script>
+    <script src="/static/js/settings.js"></script>
     <script>
         document.querySelectorAll('.close').forEach(button => {
             button.addEventListener('click', function() {

@@ -64,7 +64,8 @@ def open_case(request, case_id):
             'item': {
                 'id': selected_item.id,
                 'name': selected_item.name,
-                'price': float(selected_item.price),
+                'price_rub': float(selected_item.price), 
+                'price': float(selected_item.price),      
                 'rarity': selected_item.rarity,
                 'rarity_class': rarity_class,
                 'rarity_name': rarity_name,
