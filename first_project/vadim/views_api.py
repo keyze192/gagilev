@@ -10,9 +10,6 @@ import json
 @login_required
 @csrf_exempt
 def open_case(request, case_id):
-    """
-    API для открытия кейса
-    """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Метод не разрешен'})
     
@@ -80,9 +77,6 @@ def open_case(request, case_id):
         return JsonResponse({'success': False, 'error': str(e)})
 
 def select_item_by_chance(items_with_chances):
-    """
-    Выбирает предмет на основе шансов
-    """
     total_chance = sum(item['chance'] for item in items_with_chances)
     
 
@@ -102,7 +96,6 @@ def select_item_by_chance(items_with_chances):
     return items_with_chances[0]['item'] if items_with_chances else None
 
 def get_rarity_class(rarity):
-    """Возвращает CSS класс для редкости"""
     rarity_map = {
         'common': 'common',
         'rare': 'rare',
@@ -113,7 +106,7 @@ def get_rarity_class(rarity):
     return rarity_map.get(rarity.lower(), 'common')
 
 def get_rarity_name(rarity):
-    """Возвращает название редкости на русском"""
+
     rarity_map = {
         'common': 'Обычный',
         'rare': 'Редкий',
@@ -124,7 +117,7 @@ def get_rarity_name(rarity):
     return rarity_map.get(rarity.lower(), rarity)
 
 def get_item_image(item):
-    """Возвращает иконку для предмета (заглушка)"""
+
     if 'нож' in item.name.lower():
         return 'fa-crosshairs'
     elif 'перчатки' in item.name.lower():
@@ -136,9 +129,6 @@ def get_item_image(item):
 
 @login_required
 def case_history(request, case_id):
-    """
-    API для получения истории открытий кейса
-    """
     try:
         case = get_object_or_404(Cases, id=case_id)
         openings = CaseOpening.objects.filter(case=case).select_related('user', 'item').order_by('-opened_at')[:20]
@@ -164,7 +154,6 @@ def case_history(request, case_id):
         })
 
 def time_ago(dt):
-    """Возвращает сколько времени прошло"""
     now = timezone.now()
     diff = now - dt
     

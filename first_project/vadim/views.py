@@ -20,18 +20,12 @@ def index(request):
 
 @csrf_exempt
 def steam_login(request):
-    """
-    Перенаправляет пользователя на Steam для авторизации
-    """
     steam_api = SteamAPI()
     login_url = steam_api.get_login_url()
     return redirect(login_url)
 
 @csrf_exempt
 def steam_callback(request):
-    """
-    Обрабатывает callback от Steam после авторизации
-    """
     steam_api = SteamAPI()
     steam_id = steam_api.validate_steam_response(request)
     
@@ -224,9 +218,7 @@ def filter_cases(request):
     
     return JsonResponse({'success': False, 'error': 'Метод не разрешен'})
 def login_redirect(request):
-    """Перенаправляет на Steam авторизацию"""
     return redirect('steam_login')
 
 def register_redirect(request):
-    """Перенаправляет на Steam авторизацию"""
     return redirect('steam_login')

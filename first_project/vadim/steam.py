@@ -12,9 +12,6 @@ class SteamAPI:
         self.return_url = getattr(settings, 'STEAM_RETURN_URL', 'http://127.0.0.1:8000/steam/callback/')
     
     def get_login_url(self):
-        """
-        Генерирует URL для перенаправления на Steam OpenID
-        """
         params = {
             'openid.ns': 'http://specs.openid.net/auth/2.0',
             'openid.identity': 'http://specs.openid.net/auth/2.0/identifier_select',
@@ -28,9 +25,6 @@ class SteamAPI:
         return f"https://steamcommunity.com/openid/login?{urlencode(params)}"
     
     def validate_steam_response(self, request):
-        """
-        Проверяет ответ от Steam и извлекает Steam ID
-        """
         params = request.GET.dict()
         if 'openid.mode' not in params or params['openid.mode'] != 'id_res':
             return None
@@ -46,9 +40,6 @@ class SteamAPI:
         return None
     
     def get_player_summary(self, steam_id):
-        """
-        Получает информацию о пользователе Steam
-        """
         if not self.api_key:
             print("STEAM_API_KEY не настроен в settings.py")
             return None
@@ -90,9 +81,6 @@ class SteamAPI:
         return None
     
     def get_player_friends(self, steam_id):
-        """
-        Получает список друзей пользователя (опционально)
-        """
         if not self.api_key:
             return []
         
