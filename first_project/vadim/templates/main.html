@@ -13,7 +13,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="filters-minimal">
                 <div class="filter-select-wrapper">
                     <select id="priceFilter" class="filter-select">
@@ -25,7 +25,7 @@
                     </select>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                
+
                 <div class="filter-select-wrapper">
                     <select id="rarityFilter" class="filter-select">
                         <option value="all">Все кейсы</option>
@@ -37,7 +37,7 @@
                     </select>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                
+
                 <div class="filter-select-wrapper">
                     <select id="sortFilter" class="filter-select">
                         <option value="popular">Сортировка</option>
@@ -47,13 +47,13 @@
                     </select>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                
+
                 <button class="filter-reset-minimal" title="Сбросить фильтры">
                     <i class="fas fa-redo-alt"></i>
                 </button>
             </div>
         </div>
-        
+
         <div class="active-filters-minimal"></div>
     </div>
 </section>
@@ -62,35 +62,75 @@
     <section class="cases-section">
         <div class="container">
             <h2 class="section-title">Популярные кейсы</h2>
-            <div class="cases-count" style="text-align: center; margin-bottom: 20px;">
+            <div class="cases-count">
                 Найдено: <span id="caseCount">{{ popular_cases|length }}</span> кейсов
             </div>
-            
+
             <div class="cases-grid" id="casesContainer">
                 {% for case in popular_cases %}
                 <div class="case-card" data-rarity="common">
-                    <div class="case-image">
+                    <div class="case-card-glow"></div>
+                    <div class="case-card-image">
                         {% if case.image %}
                             <img src="{{ case.image.url }}" alt="{{ case.name }}">
                         {% else %}
                             <i class="fas fa-box"></i>
                         {% endif %}
                     </div>
-                    <div class="case-name">{{ case.name }}</div>
-                    <div class="case-price">{{ case.price }} ₽</div>
-                    <a href="{% url 'case_detail' case.id %}" class="btn">
-                        <i class="fas fa-gift"></i> Открыть
+                    <div class="case-card-body">
+                        <div class="case-name">{{ case.name }}</div>
+                        <div class="case-card-price-row">
+                            <span class="case-price-label">Цена</span>
+                            <span class="case-price" data-rub-value="{{ case.price }}">{{ case.price }} ₽</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'case_detail' case.id %}" class="case-card-btn">
+                        <i class="fas fa-gift"></i>
+                        <span>Открыть</span>
                     </a>
                 </div>
                 {% endfor %}
             </div>
-            
-            <div id="noResults" style="display: none; text-align: center; padding: 50px;">
-                <i class="fas fa-search" style="font-size: 48px; color: var(--text-secondary); margin-bottom: 20px;"></i>
-                <h3 style="color: var(--text-color); margin-bottom: 10px;">Кейсы не найдены</h3>
-                <p style="color: var(--text-secondary);">Попробуйте изменить параметры поиска</p>
+
+            <div id="noResults" class="no-results">
+                <i class="fas fa-search"></i>
+                <h3>Кейсы не найдены</h3>
+                <p>Попробуйте изменить параметры поиска</p>
             </div>
         </div>
     </section>
 </main>
+
+<div class="case-opening-overlay" id="caseOpeningOverlay">
+    <div class="case-opening-inner">
+        <div id="rouletteStage" class="roulette-stage">
+            <div class="roulette-track" id="rouletteTrack"></div>
+            <div class="roulette-pointer"></div>
+            <div class="roulette-fade-left"></div>
+            <div class="roulette-fade-right"></div>
+        </div>
+
+        <div id="winStage" class="win-stage">
+            <div class="win-card">
+                <div class="win-title">Вы получили</div>
+                <div class="win-item-icon" id="winItemIcon"></div>
+                <div class="win-item-name" id="winItemName"></div>
+                <div class="win-item-price" id="winItemPrice"></div>
+                <div class="win-item-rarity" id="winItemRarity"></div>
+                <div class="win-balance">
+                    Баланс: <span id="winNewBalance">0 ₽</span>
+                </div>
+                <div class="win-actions">
+                    <button class="btn btn-outline" data-close-overlay>
+                        <i class="fas fa-times"></i> Закрыть
+                    </button>
+                    <button class="btn btn-primary" data-close-overlay data-reopen>
+                        <i class="fas fa-redo"></i> Открыть ещё
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

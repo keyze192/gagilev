@@ -22,4 +22,7 @@ urlpatterns = [
 
     path('api/open-case/<int:case_id>/', views_api.open_case, name='api_open_case'),
     path('api/case-history/<int:case_id>/', views_api.case_history, name='api_case_history'),
+
+    path('api/sell-item/<int:inventory_id>/', views_api.sell_item, name='api_sell_item'),
+    path('api/sell-all-items/', views_api.sell_all_items, name='api_sell_all_items'),
 ]

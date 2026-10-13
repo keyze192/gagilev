@@ -33,12 +33,12 @@ class Users(models.Model):
     
     @property
     def display_name(self):
-        """Возвращает отображаемое имя (сначала Steam ник, потом username)"""
+
         return self.steam_username or self.user_name or f"User_{self.steam_id[-8:]}"
     
     @property
     def is_steam_connected(self):
-        """Проверяет подключен ли Steam"""
+
         return bool(self.steam_id)
         
 
@@ -134,7 +134,6 @@ class Chance(models.Model):
         return f"{self.item}"
     
 class CaseOpening(models.Model):
-    """Модель для истории открытий кейсов"""
     user = models.ForeignKey(Users, on_delete=models.CASCADE, verbose_name='пользователь')
     case = models.ForeignKey(Cases, on_delete=models.CASCADE, verbose_name='кейс')
     item = models.ForeignKey(Items, on_delete=models.CASCADE, verbose_name='выпавший предмет')
@@ -149,7 +148,6 @@ class CaseOpening(models.Model):
         return f"{self.user} открыл {self.case} и получил {self.item}"
     
 class UserInventory(models.Model):
-    """Инвентарь пользователя"""
     user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='inventory')
     item = models.ForeignKey(Items, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=1)

@@ -1,18 +1,15 @@
-// Настройки сайта - валюты и темы
 class SiteSettings {
     constructor() {
-        // Курсы валют (относительно RUB)
         this.exchangeRates = {
             'RUB': 1,
-            'USD': 0.011,    // 1 RUB = 0.011 USD
-            'EUR': 0.010,    // 1 RUB = 0.010 EUR
-            'CNY': 0.079,    // 1 RUB = 0.079 CNY
-            'BTC': 0.00000012, // Биткоин
-            'ETH': 0.0000018,  // Эфириум
-            'TON': 0.0009      // Toncoin
+            'USD': 0.011,
+            'EUR': 0.010,
+            'CNY': 0.079,
+            'BTC': 0.00000012,
+            'ETH': 0.0000018,
+            'TON': 0.0009
         };
-        
-        // Символы валют
+
         this.currencySymbols = {
             'RUB': '₽',
             'USD': '$',
@@ -22,8 +19,7 @@ class SiteSettings {
             'ETH': 'Ξ',
             'TON': '⍎'
         };
-        
-        // Названия валют
+
         this.currencyNames = {
             'RUB': 'Рубль',
             'USD': 'Доллар',
@@ -33,123 +29,79 @@ class SiteSettings {
             'ETH': 'Ethereum',
             'TON': 'Toncoin'
         };
-        
-        // Текущие настройки
+
         this.currentCurrency = localStorage.getItem('selectedCurrency') || 'RUB';
         this.currentTheme = localStorage.getItem('siteTheme') || 'dark';
-        
+
         this.init();
     }
-    
+
     init() {
-        this.loadExchangeRates();
         this.applyTheme();
         this.setupCurrencySelector();
         this.setupThemeToggle();
         this.convertAllPrices();
-        
-        // Слушаем изменения на странице (для динамически добавляемых элементов)
         this.observeDOMChanges();
     }
-    
-    // Загрузка актуальных курсов валют (опционально)
-    async loadExchangeRates() {
-        try {
-            // Можно использовать бесплатное API для курсов
-            // Например: https://api.exchangerate-api.com/v4/latest/RUB
-            const response = await fetch('https://api.exchangerate-api.com/v4/latest/RUB');
-            if (response.ok) {
-                const data = await response.json();
-                if (data.rates) {
-                    this.exchangeRates['USD'] = data.rates.USD || 0.011;
-                    this.exchangeRates['EUR'] = data.rates.EUR || 0.010;
-                    this.exchangeRates['CNY'] = data.rates.CNY || 0.079;
-                }
-            }
-        } catch (error) {
-            console.log('Использую локальные курсы валют');
-        }
-    }
-    
-    // Конвертация цены
+
     convertPrice(priceRUB) {
         const rate = this.exchangeRates[this.currentCurrency];
-        if (!rate) return priceRUB;
+        if (!rate || this.currentCurrency === 'RUB') {
+            return Math.round(priceRUB);
+        }
         return (priceRUB * rate).toFixed(2);
     }
-    
-    // Получить символ валюты
+
     getCurrencySymbol() {
         return this.currencySymbols[this.currentCurrency] || '₽';
     }
-    
-    // Конвертация всех цен на странице
+
     convertAllPrices() {
-        const priceElements = document.querySelectorAll('.case-price, .item-price, .balance-amount, .preview-price, .button-price, .detail-value, .history-item-price, .item-price-large');
-        
-        priceElements.forEach(element => {
-            // Парсим текущее значение
-            let originalValue = element.getAttribute('data-rub-value');
-            
-            if (!originalValue) {
-                const text = element.textContent;
+        const priceElements = document.querySelectorAll(
+            '.case-price, .item-price, .balance-amount, .preview-price, .button-price, .detail-value, .history-item-price, .item-price-large, #userBalance, .case-price-large, #winNewBalance'
+        );
+
+        priceElements.forEach(el => {
+            let original = el.getAttribute('data-rub-value');
+
+            if (original === null) {
+                const text = el.textContent;
                 const match = text.match(/(\d+(?:\.\d+)?)/);
                 if (match) {
-                    originalValue = parseFloat(match[1]);
-                    element.setAttribute('data-rub-value', originalValue);
+                    original = parseFloat(match[1]);
+                    el.setAttribute('data-rub-value', original);
                 }
             }
-            
-            if (originalValue) {
-                const converted = this.convertPrice(parseFloat(originalValue));
-                const symbol = this.getCurrencySymbol();
-                
-                // Сохраняем оригинальное значение в атрибуте
-                if (!element.hasAttribute('data-rub-value')) {
-                    element.setAttribute('data-rub-value', originalValue);
-                }
-                
-                // Обновляем отображение
-                const oldText = element.textContent;
-                const newText = oldText.replace(/[\d\.,]+(?:\s*[₽$€¥₿Ξ⍎]?)/, `${converted} ${symbol}`);
-                element.textContent = newText;
+
+            if (original !== null) {
+                const val = parseFloat(original);
+                const converted = this.convertPrice(val);
+                el.textContent = `${converted} ${this.getCurrencySymbol()}`;
             }
         });
     }
-    
-    // Смена валюты
-    setCurrency(currencyCode) {
-        this.currentCurrency = currencyCode;
-        localStorage.setItem('selectedCurrency', currencyCode);
+
+    setCurrency(code) {
+        this.currentCurrency = code;
+        localStorage.setItem('selectedCurrency', code);
         this.convertAllPrices();
         this.updateCurrencyDisplay();
     }
-    
-    // Обновление отображения выбранной валюты в UI
+
     updateCurrencyDisplay() {
-        const currencyBtn = document.querySelector('.currency-btn span');
-        if (currencyBtn) {
-            currencyBtn.textContent = this.currentCurrency;
-        }
-        
-        // Обновляем любые другие элементы, показывающие валюту
-        document.querySelectorAll('.currency-display').forEach(el => {
-            el.textContent = this.currentCurrency;
-        });
+        const btn = document.querySelector('.currency-btn span');
+        if (btn) btn.textContent = this.currentCurrency;
     }
-    
-    // Создание выпадающего меню выбора валюты
+
     setupCurrencySelector() {
-        // Проверяем, не добавлено ли уже меню
         if (document.querySelector('.currency-selector')) return;
-        
+
         const userActions = document.querySelector('.user-actions');
         if (!userActions) return;
-        
-        // Создаем контейнер для выбора валюты
-        const currencyContainer = document.createElement('div');
-        currencyContainer.className = 'currency-selector';
-        currencyContainer.innerHTML = `
+
+        const container = document.createElement('div');
+        container.className = 'currency-selector';
+        container.innerHTML = `
             <button class="currency-btn">
                 <i class="fas fa-coins"></i>
                 <span>${this.currentCurrency}</span>
@@ -170,56 +122,44 @@ class SiteSettings {
                 </div>
             </div>
         `;
-        
-        // Вставляем перед меню пользователя
+
         const balance = document.querySelector('.balance');
         if (balance) {
-            balance.parentNode.insertBefore(currencyContainer, balance);
+            balance.parentNode.insertBefore(container, balance);
         } else {
-            userActions.prepend(currencyContainer);
+            userActions.prepend(container);
         }
-        
-        // Добавляем обработчики
-        const currencyBtn = currencyContainer.querySelector('.currency-btn');
-        const dropdown = currencyContainer.querySelector('.currency-dropdown');
-        
-        currencyBtn.addEventListener('click', (e) => {
+
+        const btn = container.querySelector('.currency-btn');
+        const dropdown = container.querySelector('.currency-dropdown');
+
+        btn.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdown.classList.toggle('show');
         });
-        
-        // Поиск валют
-        const searchInput = currencyContainer.querySelector('#currencySearch');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                const options = currencyContainer.querySelectorAll('.currency-option');
-                options.forEach(option => {
-                    const text = option.textContent.toLowerCase();
-                    option.style.display = text.includes(searchTerm) ? 'flex' : 'none';
+
+        const search = container.querySelector('#currencySearch');
+        if (search) {
+            search.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                container.querySelectorAll('.currency-option').forEach(opt => {
+                    opt.style.display = opt.textContent.toLowerCase().includes(term) ? 'flex' : 'none';
                 });
             });
         }
-        
-        // Выбор валюты
-        const options = currencyContainer.querySelectorAll('.currency-option');
-        options.forEach(option => {
-            option.addEventListener('click', () => {
-                const currency = option.dataset.currency;
-                this.setCurrency(currency);
+
+        container.querySelectorAll('.currency-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                this.setCurrency(opt.dataset.currency);
                 dropdown.classList.remove('show');
             });
         });
-        
-        // Закрытие при клике вне
+
         document.addEventListener('click', (e) => {
-            if (!currencyContainer.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
+            if (!container.contains(e.target)) dropdown.classList.remove('show');
         });
     }
-    
-    // ТЕМЫ
+
     applyTheme() {
         if (this.currentTheme === 'light') {
             document.body.classList.add('light-theme');
@@ -227,88 +167,67 @@ class SiteSettings {
             document.body.classList.remove('light-theme');
         }
     }
-    
+
     setTheme(theme) {
         this.currentTheme = theme;
         localStorage.setItem('siteTheme', theme);
         this.applyTheme();
         this.updateThemeDisplay();
     }
-    
+
     toggleTheme() {
-        const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
-        this.setTheme(newTheme);
+        this.setTheme(this.currentTheme === 'dark' ? 'light' : 'dark');
     }
-    
+
     updateThemeDisplay() {
-        const themeBtn = document.querySelector('.theme-toggle');
-        if (themeBtn) {
-            const icon = themeBtn.querySelector('i');
-            if (this.currentTheme === 'dark') {
-                icon.className = 'fas fa-moon';
-                themeBtn.querySelector('span').textContent = 'Тёмная';
-            } else {
-                icon.className = 'fas fa-sun';
-                themeBtn.querySelector('span').textContent = 'Светлая';
-            }
+        const btn = document.querySelector('.theme-toggle');
+        if (!btn) return;
+        const icon = btn.querySelector('i');
+        const span = btn.querySelector('span');
+        if (this.currentTheme === 'dark') {
+            icon.className = 'fas fa-moon';
+            span.textContent = 'Тёмная';
+        } else {
+            icon.className = 'fas fa-sun';
+            span.textContent = 'Светлая';
         }
     }
-    
+
     setupThemeToggle() {
         if (document.querySelector('.theme-toggle')) return;
-        
+
         const userActions = document.querySelector('.user-actions');
         if (!userActions) return;
-        
-        const themeContainer = document.createElement('div');
-        themeContainer.className = 'theme-toggle-container';
-        themeContainer.innerHTML = `
+
+        const container = document.createElement('div');
+        container.className = 'theme-toggle-container';
+        container.innerHTML = `
             <button class="theme-toggle">
                 <i class="fas ${this.currentTheme === 'dark' ? 'fa-moon' : 'fa-sun'}"></i>
                 <span>${this.currentTheme === 'dark' ? 'Тёмная' : 'Светлая'}</span>
             </button>
         `;
-        
-        const currencySelector = document.querySelector('.currency-selector');
-        if (currencySelector) {
-            currencySelector.after(themeContainer);
+
+        const selector = document.querySelector('.currency-selector');
+        if (selector) {
+            selector.after(container);
         } else {
-            userActions.prepend(themeContainer);
+            userActions.prepend(container);
         }
-        
-        const themeBtn = themeContainer.querySelector('.theme-toggle');
-        themeBtn.addEventListener('click', () => {
+
+        container.querySelector('.theme-toggle').addEventListener('click', () => {
             this.toggleTheme();
         });
     }
-    
-    // Наблюдатель за изменениями DOM (для динамически добавляемых цен)
+
     observeDOMChanges() {
-        const observer = new MutationObserver((mutations) => {
-            let shouldConvert = false;
-            mutations.forEach(mutation => {
-                if (mutation.addedNodes.length) {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) { // Элемент
-                            if (node.querySelector && node.querySelector('.case-price, .item-price')) {
-                                shouldConvert = true;
-                            }
-                        }
-                    });
-                }
-            });
-            if (shouldConvert) {
-                setTimeout(() => this.convertAllPrices(), 100);
-            }
+        const observer = new MutationObserver(() => {
+            setTimeout(() => this.convertAllPrices(), 100);
         });
-        
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     window.siteSettings = new SiteSettings();
-});
+}); 

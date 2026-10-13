@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from .models import Cases, Chance, Items, Users, Upgrade, Contract
+from .models import Cases, Chance, Items, Users, Upgrade, Contract, UserInventory
 from .steam import SteamAPI
 import secrets
 import string
@@ -107,14 +107,28 @@ def profile_view(request):
     try:
         user_profile = Users.objects.get(user=request.user)
     except Users.DoesNotExist:
-
         user_profile = Users.objects.create(
             user=request.user,
             user_name=request.user.username,
             balance=1000,
             trade_link=''
         )
-    
+
+    inventory = UserInventory.objects.filter(user=user_profile).select_related('item').order_by('-obtained_at')
+
+    total_items = sum(inv.quantity for inv in inventory)
+    total_value = sum(int(float(inv.item.price)) * inv.quantity for inv in inventory)
+
+    inventory_data = []
+    for inv in inventory:
+        inventory_data.append({
+            'id': inv.id,
+            'item': inv.item,
+            'quantity': inv.quantity,
+            'obtained_at': inv.obtained_at,
+            'rarity': inv.item.rarity.lower(),
+        })
+
     context = {
         'profile': user_profile,
         'steam_connected': user_profile.steam_id is not None,
@@ -126,9 +140,12 @@ def profile_view(request):
             'country': user_profile.steam_country,
             'steam_id': user_profile.steam_id,
             'created_at': user_profile.steam_created_at,
-        } if user_profile.steam_id else None
+        } if user_profile.steam_id else None,
+        'inventory': inventory_data,
+        'total_items': total_items,
+        'total_value': total_value,
     }
-    
+
     return render(request, 'profile.html', context)
 
 @login_required
