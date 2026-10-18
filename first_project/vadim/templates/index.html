@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/static/css/reset.css">
     <link rel="stylesheet" href="/static/css/auth.css">
     <link rel="stylesheet" href="/static/css/case.css">
+    <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
 </head>
 <body>
     <header>
@@ -28,11 +29,10 @@
                 
                 <div class="user-actions">
                     {% if user.is_authenticated %}
-                        <div class="balance" title="Ваш баланс">
-                            <i class="fas fa-coins"></i>
-                            {% with user_profile=user.profile %}
-                                <span class="balance-amount" data-rub-value="{{ user_profile.balance|default:'1000' }}">{{ user_profile.balance|default:"1000" }} ₽</span>
-                            {% endwith %}
+                        <div class="balance"
+                            title="Ваш баланс"
+                            data-vue-balance
+                            data-balance="{{ user.profile.balance|default:'1000' }}">
                         </div>
                         <div class="user-menu">
                             <button class="btn user-menu-btn" type="button">
@@ -122,6 +122,8 @@
         </div>
     </footer>
 
+    <script src="https://unpkg.com/vue@3.4.21/dist/vue.global.prod.js"></script>
+    <script src="/static/js/vue-components.js"></script>
     <script src="/static/js/case-opening.js"></script>
     <script src="/static/js/case-filters.js"></script>
     <script src="/static/js/settings.js"></script>

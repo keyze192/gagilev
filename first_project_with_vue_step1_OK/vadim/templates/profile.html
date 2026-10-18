@@ -1,0 +1,282 @@
+{% extends "index.html" %}
+
+{% block title %}LUCK-BATTLE - Профиль{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+
+    <section class="profile-hero">
+        <div class="container">
+            <div class="profile-hero-card">
+                <div class="profile-hero-glow"></div>
+
+                <div class="profile-header">
+                    <div class="profile-avatar-wrap">
+                        {% if steam_connected and steam_data.avatar %}
+                            <img src="{{ steam_data.avatar }}" alt="{{ steam_data.username }}" class="profile-avatar-img">
+                        {% else %}
+                            <div class="profile-avatar-placeholder">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                        {% endif %}
+                        {% if steam_connected %}
+                            <div class="steam-badge-large">
+                                <i class="fab fa-steam"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="profile-name-block">
+                        <h1 class="profile-nickname">{{ steam_data.username|default:profile.user_name }}</h1>
+
+                        {% if steam_connected %}
+                            <div class="profile-status">
+                                <span class="status-dot"></span>
+                                <span>Steam подключен</span>
+                            </div>
+                        {% else %}
+                            <div class="profile-status offline">
+                                <span class="status-dot"></span>
+                                <span>Не подключен Steam</span>
+                            </div>
+                        {% endif %}
+
+                        {% if steam_data.realname %}
+                            <p class="profile-realname">
+                                <i class="fas fa-id-card"></i> {{ steam_data.realname }}
+                            </p>
+                        {% endif %}
+
+                        {% if steam_data.country %}
+                            <p class="profile-country">
+                                <i class="fas fa-map-marker-alt"></i> {{ steam_data.country }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-box balance-box">
+                        <i class="fas fa-wallet"></i>
+                        <div class="profile-stat-value" id="profileBalance" data-rub-value="{{ profile.balance }}">{{ profile.balance }} ₽</div>
+                        <div class="profile-stat-label">Баланс</div>
+                    </div>
+                    <div class="profile-stat-box">
+                        <i class="fas fa-box-open"></i>
+                        <div class="profile-stat-value">{{ total_items }}</div>
+                        <div class="profile-stat-label">Предметов</div>
+                    </div>
+                    <div class="profile-stat-box">
+                        <i class="fas fa-gem"></i>
+                        <div class="profile-stat-value" id="inventoryValue" data-rub-value="{{ total_value }}">{{ total_value }} ₽</div>
+                        <div class="profile-stat-label">Стоимость инвентаря</div>
+                    </div>
+                    <div class="profile-stat-box">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="profile-stat-value">{{ profile.created_at|date:"d.m.Y" }}</div>
+                        <div class="profile-stat-label">Дата регистрации</div>
+                    </div>
+                </div>
+
+                {% if steam_data and steam_data.profile_url %}
+                <div class="profile-steam-link-row">
+                    <a href="{{ steam_data.profile_url }}" target="_blank" class="profile-steam-link">
+                        <i class="fab fa-steam"></i>
+                        Открыть Steam профиль
+                        <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="inventory-section">
+        <div class="container">
+            <div class="inventory-header">
+                <h2 class="section-title">Мой инвентарь</h2>
+                {% if total_items > 0 %}
+                <button class="btn-sell-all" id="sellAllBtn">
+                    <i class="fas fa-fire"></i>
+                    Продать всё за <span id="sellAllPrice" data-rub-value="{{ total_value }}">{{ total_value }} ₽</span>
+                </button>
+                {% endif %}
+            </div>
+
+            {% if inventory %}
+                <div class="inventory-grid" id="inventoryGrid">
+                    {% for inv in inventory %}
+                    <div class="inv-card {{ inv.rarity }}" data-inv-id="{{ inv.id }}">
+                        <div class="inv-card-glow"></div>
+                        <div class="inv-header">
+                            {% if inv.quantity > 1 %}
+                                <div class="inv-quantity">x{{ inv.quantity }}</div>
+                            {% endif %}
+                            {% if inv.item.is_stattrack %}
+                                <div class="inv-stattrack">ST™</div>
+                            {% endif %}
+                        </div>
+                        <div class="inv-image bg-{{ inv.rarity }}">
+                            {% if 'нож' in inv.item.name|lower or 'knife' in inv.item.name|lower %}
+                                <i class="fas fa-crosshairs"></i>
+                            {% elif 'перчатк' in inv.item.name|lower %}
+                                <i class="fas fa-hand-paper"></i>
+                            {% elif 'ak' in inv.item.name|lower or 'awp' in inv.item.name|lower or 'm4' in inv.item.name|lower %}
+                                <i class="fas fa-gun"></i>
+                            {% else %}
+                                <i class="fas fa-cube"></i>
+                            {% endif %}
+                        </div>
+                        <div class="inv-name">{{ inv.item.name }}</div>
+                        <div class="inv-price" data-rub-value="{{ inv.item.price }}">{{ inv.item.price }} ₽</div>
+                        <button class="inv-sell-btn" data-sell-id="{{ inv.id }}" data-sell-price="{{ inv.item.price|floatformat:0 }}">
+                            <i class="fas fa-coins"></i>
+                            Продать
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="inventory-empty">
+                    <i class="fas fa-box-open"></i>
+                    <h3>Инвентарь пуст</h3>
+                    <p>Открывайте кейсы, чтобы получить предметы</p>
+                    <a href="{% url 'main' %}" class="btn btn-primary">
+                        <i class="fas fa-dice"></i> К кейсам
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+</div>
+
+<script>
+    function getCSRF() {
+        let v = null;
+        if (document.cookie) {
+            document.cookie.split(';').forEach(c => {
+                const t = c.trim();
+                if (t.startsWith('csrftoken=')) v = decodeURIComponent(t.slice(10));
+            });
+        }
+        return v;
+    }
+
+    function showToast(msg, type) {
+        let container = document.querySelector('.messages-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'messages-container';
+            document.body.appendChild(container);
+        }
+        const el = document.createElement('div');
+        el.className = `alert alert-${type}`;
+        el.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            ${msg}
+            <button class="close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+    }
+
+    function updateBalanceOnPage(newBalance) {
+        const balEl = document.getElementById('profileBalance');
+        if (balEl) {
+            balEl.setAttribute('data-rub-value', newBalance);
+            balEl.textContent = newBalance + ' ₽';
+        }
+        document.querySelectorAll('.balance-amount, #userBalance').forEach(el => {
+            el.setAttribute('data-rub-value', newBalance);
+            el.textContent = newBalance;
+        });
+    }
+
+    document.querySelectorAll('.inv-sell-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.sellId;
+            const price = parseInt(btn.dataset.sellPrice);
+            if (!confirm(`Продать предмет за ${price} ₽?`)) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch(`/api/sell-item/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRF() || '',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(`Продано за ${data.sold_price} ₽`, 'success');
+                    updateBalanceOnPage(data.new_balance);
+                    const card = btn.closest('.inv-card');
+                    if (card) {
+                        card.style.transition = 'all 0.4s ease';
+                        card.style.transform = 'scale(0.5)';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.remove();
+                            if (!document.querySelectorAll('.inv-card').length) {
+                                location.reload();
+                            }
+                        }, 400);
+                    }
+                } else {
+                    showToast(data.error || 'Ошибка', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-coins"></i> Продать';
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Ошибка сети', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-coins"></i> Продать';
+            }
+        });
+    });
+
+    const sellAllBtn = document.getElementById('sellAllBtn');
+    if (sellAllBtn) {
+        sellAllBtn.addEventListener('click', async () => {
+            const priceEl = document.getElementById('sellAllPrice');
+            const price = priceEl ? parseInt(priceEl.dataset.rubValue) : 0;
+            if (!confirm(`Продать ВСЕ предметы за ${price} ₽?`)) return;
+
+            sellAllBtn.disabled = true;
+            sellAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Продаём...';
+
+            try {
+                const res = await fetch('/api/sell-all-items/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCSRF() || '',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast(`Продано ${data.items_count} предметов за ${data.total_price} ₽`, 'success');
+                    updateBalanceOnPage(data.new_balance);
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.error || 'Ошибка', 'error');
+                    sellAllBtn.disabled = false;
+                    sellAllBtn.innerHTML = `<i class="fas fa-fire"></i> Продать всё за <span id="sellAllPrice" data-rub-value="${price}">${price} ₽</span>`;
+                }
+            } catch (e) {
+                console.error(e);
+                showToast('Ошибка сети', 'error');
+                sellAllBtn.disabled = false;
+                sellAllBtn.innerHTML = `<i class="fas fa-fire"></i> Продать всё за ${price} ₽`;
+            }
+        });
+    }
+</script>
+{% endblock %}
