@@ -1,16 +1,15 @@
-# vadim/steam.py
 import requests
 from django.conf import settings
-from django.urls import reverse
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlencode
 import re
 from datetime import datetime
+
 
 class SteamAPI:
     def __init__(self):
         self.api_key = getattr(settings, 'STEAM_API_KEY', '')
         self.return_url = getattr(settings, 'STEAM_RETURN_URL', 'http://127.0.0.1:8000/steam/callback/')
-    
+
     def get_login_url(self):
         params = {
             'openid.ns': 'http://specs.openid.net/auth/2.0',
@@ -20,10 +19,8 @@ class SteamAPI:
             'openid.return_to': self.return_url,
             'openid.realm': 'http://127.0.0.1:8000',
         }
-        
-        from urllib.parse import urlencode
         return f"https://steamcommunity.com/openid/login?{urlencode(params)}"
-    
+
     def validate_steam_response(self, request):
         params = request.GET.dict()
         if 'openid.mode' not in params or params['openid.mode'] != 'id_res':
@@ -32,36 +29,37 @@ class SteamAPI:
             return None
         claimed_id = params.get('openid.claimed_id', '')
         match = re.search(r'https?://steamcommunity\.com/openid/id/(\d+)', claimed_id)
-        
+
         if match:
             steam_id = match.group(1)
             return steam_id
-        
+
         return None
-    
+
     def get_player_summary(self, steam_id):
+        """Получает данные профиля из Steam API."""
         if not self.api_key:
             print("STEAM_API_KEY не настроен в settings.py")
             return None
-        
-        url = f"http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/"
+
+        url = "http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/"
         params = {
             'key': self.api_key,
             'steamids': steam_id,
             'format': 'json'
         }
-        
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=5)
             data = response.json()
-            
+
             if data and 'response' in data and 'players' in data['response'] and data['response']['players']:
                 player = data['response']['players'][0]
-                
+
                 created_at = None
                 if 'timecreated' in player:
                     created_at = datetime.fromtimestamp(player['timecreated'])
-                
+
                 return {
                     'steam_id': player.get('steamid'),
                     'personaname': player.get('personaname', ''),
@@ -77,27 +75,28 @@ class SteamAPI:
                 }
         except Exception as e:
             print(f"Ошибка при получении данных Steam: {e}")
+            return None
         
         return None
-    
+
     def get_player_friends(self, steam_id):
         if not self.api_key:
             return []
-        
-        url = f"http://api.steampowered.com/ISteamUser/GetFriendList/v0001/"
+
+        url = "http://api.steampowered.com/ISteamUser/GetFriendList/v0001/"
         params = {
             'key': self.api_key,
             'steamid': steam_id,
             'relationship': 'friend'
         }
-        
+
         try:
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=5)
             data = response.json()
-            
+
             if data and 'friendslist' in data:
                 return data['friendslist'].get('friends', [])
         except:
             pass
-        
+
         return []

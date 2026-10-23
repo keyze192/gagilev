@@ -1,28 +1,14 @@
 from django.urls import path
-from . import views
-from . import views_api
+from . import views, views_api
 
 urlpatterns = [
-    path('', views.index, name='main'),
-    path('upgrade/', views.upgrade_page, name='upgrade'),
-    path('contract/', views.contract_page, name='contract'),
-    path('case/<int:case_id>/', views.case_detail, name='case_detail'),
-    path('filter-cases/', views.filter_cases, name='filter_cases'),
-    
-
     path('steam/login/', views.steam_login, name='steam_login'),
     path('steam/callback/', views.steam_callback, name='steam_callback'),
     path('logout/', views.logout_view, name='logout'),
-    path('profile/', views.profile_view, name='profile'),
-    
-
-    path('login/', views.steam_login, name='login'),
-    path('register/', views.steam_login, name='register'),
-    
-
     path('api/open-case/<int:case_id>/', views_api.open_case, name='api_open_case'),
     path('api/case-history/<int:case_id>/', views_api.case_history, name='api_case_history'),
-
     path('api/sell-item/<int:inventory_id>/', views_api.sell_item, name='api_sell_item'),
     path('api/sell-all-items/', views_api.sell_all_items, name='api_sell_all_items'),
+    path('api/all-items/', views_api.get_all_items, name='api_all_items'),
+    path('api/do-upgrade/', views_api.do_upgrade, name='api_do_upgrade'),
 ]
