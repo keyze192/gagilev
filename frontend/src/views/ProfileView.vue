@@ -16,7 +16,6 @@
       </div>
 
       <template v-else>
-        <!-- Профиль -->
         <div class="profile-card glass-card">
           <div class="profile-hero">
             <div class="avatar-wrap">
@@ -52,8 +51,7 @@
             </div>
           </div>
         </div>
-
-        <!-- Инвентарь -->
+>
         <div class="inv-section">
           <div class="inv-header">
             <h2 class="section-title">Мой <span class="gradient">Инвентарь</span></h2>

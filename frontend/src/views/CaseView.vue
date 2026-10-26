@@ -16,7 +16,6 @@
       </div>
 
       <template v-else>
-        <!-- Hero -->
         <div class="hero">
           <div class="hero-glow"></div>
           <div class="hero-content">
@@ -59,7 +58,7 @@
           </div>
         </div>
 
-        <!-- Содержимое -->
+
         <div class="mt-4">
           <h2 class="section-title">Содержимое <span class="gradient">кейса</span></h2>
           <div class="chances-grid">
@@ -77,7 +76,6 @@
           </div>
         </div>
 
-        <!-- История -->
         <div class="mt-4">
           <h2 class="section-title">Последние <span class="gradient">открытия</span></h2>
           <div v-if="historyLoading" class="loading-center">

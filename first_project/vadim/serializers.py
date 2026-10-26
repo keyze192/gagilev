@@ -82,3 +82,8 @@ class UserInventorySerializer(serializers.ModelSerializer):
         model = UserInventory
         fields = ['id', 'user', 'item', 'item_details', 'quantity', 'obtained_at']
         read_only_fields = ['obtained_at']
+
+class UsersSelfUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Users
+        fields = ['user_name', 'email', 'trade_link']

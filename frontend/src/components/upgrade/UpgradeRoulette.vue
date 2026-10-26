@@ -53,7 +53,7 @@ const emit = defineEmits(['close'])
 const stage = ref('spinning')
 const items = ref([])
 const offset = ref(0)
-const ITEM_W = 120 // ширина + gap
+const ITEM_W = 120
 const WINNER_INDEX = 35
 
 const winnerItem = computed(() => props.isWin ? props.targetItem : props.sourceItem)
@@ -100,7 +100,6 @@ function startRoulette() {
 </script>
 
 <style scoped>
-/* Стили полностью повторяют рулетку из кейсов для единого стиля */
 .overlay {
   position: fixed; inset: 0; z-index: 9000;
   background: rgba(2, 4, 8, 0.92); backdrop-filter: blur(12px);

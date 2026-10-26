@@ -5,7 +5,6 @@
         Популярные <span class="gradient">Кейсы</span>
       </h1>
 
-      <!-- Фильтры -->
       <div class="filters">
         <div class="search-wrap">
           <i class="fas fa-search"></i>

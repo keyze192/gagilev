@@ -283,3 +283,4 @@ def do_upgrade(request):
         return JsonResponse({'success': False, 'error': 'Предмет не найден в инвентаре'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+

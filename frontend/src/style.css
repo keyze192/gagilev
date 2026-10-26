@@ -2,7 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  /* Brand */
   --primary: #a855f7;
   --primary-light: #c084fc;
   --primary-dark: #7e22ce;
@@ -19,7 +18,6 @@
   --success: #10b981;
   --danger: #ef4444;
 
-  /* Backgrounds */
   --bg: #05070d;
   --bg-elevated: #0d1119;
   --glass: rgba(20, 25, 40, 0.55);
@@ -27,12 +25,10 @@
   --glass-border: rgba(168, 85, 247, 0.15);
   --glass-border-hover: rgba(168, 85, 247, 0.4);
 
-  /* Text */
   --text: #f1f5f9;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
 
-  /* Rarity */
   --r-common: #94a3b8;
   --r-rare: #10b981;
   --r-epic: #a855f7;
@@ -353,10 +349,3 @@ ul { list-style: none; }
 .mt-2 { margin-top: 16px; }
 .mt-3 { margin-top: 24px; }
 .mt-4 { margin-top: 32px; }
-
-
-
-@media (max-width: 768px) {
-  .container { padding: 0 16px; }
-  .page { padding: 24px 0 60px; }
-}

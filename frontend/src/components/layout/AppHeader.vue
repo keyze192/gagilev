@@ -9,6 +9,9 @@
       </router-link>
 
       <nav class="nav">
+        <router-link to="/users" class="nav-link">
+          <i class="fas fa-users"></i> Юзеры
+        </router-link>
         <router-link to="/" class="nav-link">
           <i class="fas fa-home"></i> Главная
         </router-link>

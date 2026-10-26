@@ -1,4 +1,4 @@
-import api, { getCSRF } from './client'
+import api from './client'
 
 export const getCurrentUser = async () => {
   try {
@@ -8,6 +8,16 @@ export const getCurrentUser = async () => {
     if (e.response?.status === 401 || e.response?.status === 403) return null
     throw e
   }
+}
+
+
+export const getUsers = async () => {
+  const { data } = await api.get('/users/')
+  return data.results || data
+}
+
+export const deleteUser = async (id) => {
+  await api.delete(`/users/${id}/`)
 }
 
 
@@ -26,22 +36,14 @@ export const getCaseChances = async (id) => {
   return data.results || data
 }
 
-export const openCase = async (caseId) => {
-  const res = await fetch(`/api/open-case/${caseId}/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'X-CSRFToken': getCSRF() || '',
-      'Content-Type': 'application/json',
-    },
-  })
-  return res.json()
+export const getCaseHistory = async (id) => {
+  const { data } = await api.get(`/cases/${id}/history/`)
+  return { success: true, history: data }
 }
 
-
-export const getCaseHistory = async (caseId) => {
-  const res = await fetch(`/api/case-history/${caseId}/`, { credentials: 'include' })
-  return res.json()
+export const openCase = async (caseId) => {
+  const { data } = await api.post(`/cases/${caseId}/open/`)
+  return data
 }
 
 
@@ -51,28 +53,28 @@ export const getInventory = async () => {
 }
 
 export const sellItem = async (inventoryId) => {
-  const res = await fetch(`/api/sell-item/${inventoryId}/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'X-CSRFToken': getCSRF() || '',
-      'Content-Type': 'application/json',
-    },
-  })
-  return res.json()
+  const { data } = await api.post(`/inventory/${inventoryId}/sell/`)
+  return data
 }
 
 export const sellAllItems = async () => {
-  const res = await fetch('/api/sell-all-items/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'X-CSRFToken': getCSRF() || '',
-      'Content-Type': 'application/json',
-    },
-  })
-  return res.json()
+  const { data } = await api.post('/inventory/sell-all/')
+  return data
 }
+
+export const getAllItems = async () => {
+  const { data } = await api.get('/items/', { params: { page_size: 1000 } })
+  return { success: true, items: data.results || data }
+}
+
+export const doUpgrade = async (inventoryId, targetItemId) => {
+  const { data } = await api.post('/inventory/upgrade/', {
+    inventory_id: inventoryId,
+    target_item_id: targetItemId,
+  })
+  return data
+}
+
 
 export const getItemIcon = (name = '') => {
   const n = name.toLowerCase()
@@ -90,22 +92,4 @@ export const rarityName = (rarity = 'common') => {
     legendary: 'Легендарный', ancient: 'Древний',
   }
   return map[(rarity || 'common').toLowerCase()] || 'Обычный'
-}
-
-export const getAllItems = async () => {
-  const res = await fetch('/api/all-items/', { credentials: 'include' })
-  return res.json()
-}
-
-export const doUpgrade = async (inventoryId, targetItemId) => {
-  const res = await fetch('/api/do-upgrade/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'X-CSRFToken': getCSRF() || '',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ inventory_id: inventoryId, target_item_id: targetItemId })
-  })
-  return res.json()
 }
