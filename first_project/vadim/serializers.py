@@ -4,24 +4,45 @@ from .models import (
     CaseOpening, UserInventory
 )
 
+def get_item_icon(name=''):
+    n = (name or '').lower()
+    if 'нож' in n or 'knife' in n: return 'fa-crosshairs'
+    if 'перчатк' in n or 'glove' in n: return 'fa-hand-paper'
+    if any(x in n for x in ['ak', 'awp', 'm4', 'deagle', 'usp', 'glock', 'famas', 'aug', 'ssg', 'scar']):
+        return 'fa-gun'
+    return 'fa-cube'
+
+RARITY_NAMES = {
+    'common': 'Обычный', 'rare': 'Редкий', 'epic': 'Эпический',
+    'legendary': 'Легендарный', 'ancient': 'Древний',
+}
+
+
 class UsersSerializer(serializers.ModelSerializer):
     display_name = serializers.ReadOnlyField()
-    is_steam_connected = serializers.ReadOnlyField()
     class Meta:
         model = Users
-        fields = [
-            'id', 'user', 'user_name', 'email', 'balance', 'trade_link',
-            'is_admin', 'steam_id', 'steam_avatar', 'steam_profile_url',
-            'steam_username', 'steam_realname', 'steam_country',
-            'steam_created_at', 'last_login_steam', 'created_at',
-            'display_name', 'is_steam_connected',
-        ]
-        read_only_fields = ['created_at', 'last_login_steam', 'steam_id']
+        fields = ['id', 'user_name', 'email', 'balance', 'trade_link',
+                  'is_admin', 'created_at', 'display_name']
+        read_only_fields = ['created_at']
 
 class ItemsSerializer(serializers.ModelSerializer):
+    icon = serializers.SerializerMethodField()
+    rarity_class = serializers.SerializerMethodField()
+    rarity_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Items
-        fields = ['id', 'name', 'rarity', 'price', 'is_stattrack']
+        fields = ['id', 'name', 'rarity', 'price', 'is_stattrack',
+                  'icon', 'rarity_class', 'rarity_name', 'image_url']
+
+    def get_icon(self, obj): 
+        return get_item_icon(obj.name)
+    def get_rarity_class(self, obj): 
+        return (obj.rarity or 'common').lower()
+    def get_rarity_name(self, obj): 
+        return RARITY_NAMES.get((obj.rarity or 'common').lower(), 'Обычный')
+
 
 class CasesSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
@@ -29,6 +50,7 @@ class CasesSerializer(serializers.ModelSerializer):
         model = Cases
         fields = ['id', 'name', 'price', 'description', 'image', 'image_url']
         extra_kwargs = {'image': {'required': False, 'allow_null': True}}
+        
     def get_image_url(self, obj):
         request = self.context.get('request')
         if obj.image and request:
@@ -40,6 +62,7 @@ class CasesListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cases
         fields = ['id', 'name', 'price', 'image_url']
+        
     def get_image_url(self, obj):
         request = self.context.get('request')
         if obj.image and request:
@@ -48,10 +71,12 @@ class CasesListSerializer(serializers.ModelSerializer):
 
 class ChanceSerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source='item.name', read_only=True)
+    item_details = ItemsSerializer(source='item', read_only=True) # <--- ВОТ ОНО, вложенный объект с ценой
     cases_name = serializers.CharField(source='cases.name', read_only=True)
+    
     class Meta:
         model = Chance
-        fields = ['id', 'chance', 'item', 'cases', 'item_name', 'cases_name']
+        fields = ['id', 'chance', 'item', 'cases', 'item_name', 'item_details', 'cases_name']
 
 class ContractSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.display_name', read_only=True)
@@ -68,13 +93,22 @@ class UpgradeSerializer(serializers.ModelSerializer):
         fields = ['id', 'amount', 'upgrade_item', 'item', 'user', 'user_name', 'item_name']
 
 class CaseOpeningSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source='user.display_name', read_only=True)
-    case_name = serializers.CharField(source='case.name', read_only=True)
-    item_name = serializers.CharField(source='item.name', read_only=True)
+    user_name  = serializers.CharField(source='user.display_name', read_only=True)
+    case_name  = serializers.CharField(source='case.name', read_only=True)
+    item_name  = serializers.CharField(source='item.name', read_only=True)
     item_price = serializers.DecimalField(source='item.price', max_digits=10, decimal_places=2, read_only=True)
+    rarity     = serializers.SerializerMethodField()
+    time_ago   = serializers.SerializerMethodField()
+
     class Meta:
         model = CaseOpening
-        fields = ['id', 'user', 'case', 'item', 'opened_at', 'user_name', 'case_name', 'item_name', 'item_price']
+        fields = ['id', 'user', 'case', 'item', 'opened_at',
+                  'user_name', 'case_name', 'item_name', 'item_price', 'rarity', 'time_ago']
+
+    def get_rarity(self, obj): return (obj.item.rarity or 'common').lower()
+    def get_time_ago(self, obj):
+        from django.utils.timesince import timesince
+        return timesince(obj.opened_at, depth=1) + ' назад'
 
 class UserInventorySerializer(serializers.ModelSerializer):
     item_details = ItemsSerializer(source='item', read_only=True)

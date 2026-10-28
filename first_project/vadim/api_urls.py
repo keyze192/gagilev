@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .auth_views import register, login_view, logout_view 
 
 from .api_views import (
     UsersViewSet, ItemsViewSet, CasesViewSet, ChanceViewSet,
@@ -18,5 +19,8 @@ router.register(r'case-openings', CaseOpeningViewSet, basename='case-openings')
 router.register(r'inventory', UserInventoryViewSet, basename='inventory')
 
 urlpatterns = [
+    path('auth/register/', register),
+    path('auth/login/',    login_view),
+    path('auth/logout/',   logout_view),
     path('', include(router.urls)),
 ]

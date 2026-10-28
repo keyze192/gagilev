@@ -1,5 +1,17 @@
 import api from './client'
 
+export const apiRegister = async (username, password, email) => {
+  const { data } = await api.post('/auth/register/', { username, password, email })
+  return data
+}
+export const apiLogin = async (username, password) => {
+  const { data } = await api.post('/auth/login/', { username, password })
+  return data
+}
+export const apiLogout = async () => {
+  await api.post('/auth/logout/')
+}
+
 export const getCurrentUser = async () => {
   try {
     const { data } = await api.get('/users/me/')
@@ -41,8 +53,8 @@ export const getCaseHistory = async (id) => {
   return { success: true, history: data }
 }
 
-export const openCase = async (caseId) => {
-  const { data } = await api.post(`/cases/${caseId}/open/`)
+export const openCase = async (caseId, count = 1) => {
+  const { data } = await api.post(`/cases/${caseId}/open/`, { count })
   return data
 }
 

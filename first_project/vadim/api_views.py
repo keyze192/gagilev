@@ -112,46 +112,61 @@ class CasesViewSet(viewsets.ModelViewSet):
         if not user_profile:
             return Response({'error': 'Профиль не найден'}, status=400)
 
+        # Получаем количество кейсов (по умолчанию 1)
+        try:
+            count = int(request.data.get('count', 1))
+        except ValueError:
+            count = 1
+        
+        if count < 1 or count > 10:
+            return Response({'error': 'Можно открыть от 1 до 10 кейсов'}, status=400)
+
         chances = list(
             Chance.objects.filter(cases=case).select_related('item')
         )
         if not chances:
             return Response({'error': 'В кейсе нет предметов'}, status=400)
 
-        with transaction.atomic():
+        total_price = case.price * count
 
+        with transaction.atomic():
             profile = Users.objects.select_for_update().get(pk=user_profile.pk)
 
-            if profile.balance < case.price:
+            if profile.balance < total_price:
                 return Response({'error': 'Недостаточно средств'}, status=400)
 
-            total = sum(float(c.chance) for c in chances)
-            r = random.uniform(0, total)
-            cumulative = 0.0
-            chosen = chances[-1].item
-            for c in chances:
-                cumulative += float(c.chance)
-                if r <= cumulative:
-                    chosen = c.item
-                    break
+            total_chance = sum(float(c.chance) for c in chances)
+            won_items = []
 
-            profile.balance -= case.price
+            for _ in range(count):
+                r = random.uniform(0, total_chance)
+                cumulative = 0.0
+                chosen = chances[-1].item
+                for c in chances:
+                    cumulative += float(c.chance)
+                    if r <= cumulative:
+                        chosen = c.item
+                        break
+                
+                won_items.append(chosen)
+                CaseOpening.objects.create(user=profile, case=case, item=chosen)
+                
+                inv, created = UserInventory.objects.get_or_create(
+                    user=profile, item=chosen, defaults={'quantity': 1}
+                )
+                if not created:
+                    inv.quantity += 1
+                    inv.save()
+
+            profile.balance -= total_price
             profile.save()
 
-            CaseOpening.objects.create(user=profile, case=case, item=chosen)
-            inv, created = UserInventory.objects.get_or_create(
-                user=profile, item=chosen, defaults={'quantity': 1}
-            )
-            if not created:
-                inv.quantity += 1
-                inv.save()
+        all_items = [ItemsSerializer(c.item).data for c in chances]
+        won_serialized = [ItemsSerializer(item).data for item in won_items]
 
-        all_items = [
-            ItemsSerializer(c.item).data for c in chances
-        ]
         return Response({
             'success': True,
-            'item': ItemsSerializer(chosen).data,
+            'items': won_serialized, # Массив всех выигранных предметов
             'all_items': all_items,
             'new_balance': float(profile.balance),
         })

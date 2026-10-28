@@ -2,22 +2,23 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api/v1',
-  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
 
-
-export function getCSRF() {
-  const m = document.cookie.match(/csrftoken=([^;]+)/)
-  return m ? m[1] : null
-}
-
 api.interceptors.request.use((config) => {
-  const csrf = getCSRF()
-  if (csrf && ['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
-    config.headers['X-CSRFToken'] = csrf
-  }
+  const token = localStorage.getItem('auth_token')
+  if (token) config.headers['Authorization'] = `Token ${token}`
   return config
 })
+
+api.interceptors.response.use(
+  (r) => r,
+  (e) => {
+    if (e.response?.status === 401) {
+      localStorage.removeItem('auth_token')
+    }
+    return Promise.reject(e)
+  }
+)
 
 export default api

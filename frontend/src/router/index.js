@@ -5,7 +5,9 @@ import ProfileView from '../views/ProfileView.vue'
 import UpgradeView from '../views/UpgradeView.vue'
 import ContractView from '../views/ContractView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
-import UsersView from '../views/UsersView.vue' 
+import UsersView from '../views/UsersView.vue'
+import LoginView from '../views/LoginView.vue'
+import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -15,8 +17,9 @@ const router = createRouter({
     { path: '/profile', name: 'profile', component: ProfileView },
     { path: '/upgrade', name: 'upgrade', component: UpgradeView },
     { path: '/contract', name: 'contract', component: ContractView },
-    
-    { path: '/users', name: 'users', component: UsersView }, 
+    { path: '/users', name: 'users', component: UsersView },
+    { path: '/login', name: 'login', component: LoginView },
+    { path: '/register', name: 'register', component: RegisterView },
     
     { path: '/:pathMatch(.*)*', name: 'notfound', component: NotFoundView },
   ],

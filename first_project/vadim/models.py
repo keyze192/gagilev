@@ -4,42 +4,25 @@ from django.utils import timezone
 
 class Users(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='profile')
-    user_name = models.CharField(verbose_name='имя пользователя', max_length=50, blank=True, null=True)
+    user_name = models.CharField("имя пользователя", max_length=50, blank=True, null=True)
     email = models.EmailField("почта", max_length=255, blank=True, null=True)
     balance = models.IntegerField("баланс аккаунта", default=0)
     trade_link = models.TextField('ссылка для обмена', blank=True)
     is_admin = models.BooleanField("admin", default=False)
-    steam_id = models.CharField("Steam ID", max_length=100, unique=True, blank=True, null=True)
-    steam_avatar = models.URLField("аватар Steam", blank=True, null=True)
-    steam_profile_url = models.URLField("профиль Steam", blank=True, null=True)
-    steam_username = models.CharField("Steam ник", max_length=255, blank=True, null=True)
-    steam_realname = models.CharField("Настоящее имя", max_length=255, blank=True, null=True)
-    steam_country = models.CharField("Страна", max_length=100, blank=True, null=True)
-    steam_created_at = models.DateTimeField("Дата регистрации Steam", blank=True, null=True)
-    last_login_steam = models.DateTimeField("Последний вход через Steam", auto_now=True)
     created_at = models.DateTimeField("Дата регистрации", auto_now_add=True)
-    
+
     class Meta:
         verbose_name = "user"
         verbose_name_plural = "users"
         ordering = ["-created_at"]
-        indexes = [
-            models.Index(fields=["user_name"]),
-            models.Index(fields=["steam_id"]),
-        ]
-    
+        indexes = [models.Index(fields=["user_name"])]
+
     def __str__(self):
-        return self.steam_username or self.user_name or f"Steam User {self.steam_id}"
-    
+        return self.user_name or f"User {self.pk}"
+
     @property
     def display_name(self):
-
-        return self.steam_username or self.user_name or f"User_{self.steam_id[-8:]}"
-    
-    @property
-    def is_steam_connected(self):
-
-        return bool(self.steam_id)
+        return self.user_name or f"User_{self.pk}"
         
 
 class Items(models.Model):
@@ -47,6 +30,7 @@ class Items(models.Model):
     rarity = models.CharField("редкость предмета", max_length=50)
     price = models.DecimalField("цена предмета", max_digits=10, decimal_places=2)  
     is_stattrack = models.BooleanField('stattrack', default=False)
+    image_url = models.URLField("Ссылка на картинку", blank=True, null=True)
     
     class Meta:
         verbose_name = "item"

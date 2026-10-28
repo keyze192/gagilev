@@ -9,9 +9,6 @@
       </router-link>
 
       <nav class="nav">
-        <router-link to="/users" class="nav-link">
-          <i class="fas fa-users"></i> Юзеры
-        </router-link>
         <router-link to="/" class="nav-link">
           <i class="fas fa-home"></i> Главная
         </router-link>
@@ -24,41 +21,52 @@
         <router-link to="/profile" class="nav-link">
           <i class="fas fa-user"></i> Профиль
         </router-link>
+        <router-link to="/users" class="nav-link">
+          <i class="fas fa-users"></i> Юзеры
+        </router-link>
       </nav>
 
       <div class="header-right">
         <template v-if="userStore.loading">
           <div class="loader"></div>
         </template>
+
         <template v-else-if="userStore.isAuth">
           <div class="balance-badge">
             <i class="fas fa-coins"></i>
             <span>{{ formatMoney(userStore.balance) }}</span>
           </div>
+
           <div class="user-menu">
             <button class="user-btn" @click="toggleMenu">
-              <img v-if="userStore.avatar" :src="userStore.avatar" class="avatar" alt="" />
-              <i v-else class="fas fa-user-circle"></i>
+              <div class="avatar-placeholder">
+                <i class="fas fa-user"></i>
+              </div>
               <span class="username">{{ userStore.displayName }}</span>
               <i class="fas fa-chevron-down caret"></i>
             </button>
+
             <transition name="drop">
               <div v-if="menuOpen" class="dropdown" @click="menuOpen = false">
                 <router-link to="/profile" class="dropdown-item">
                   <i class="fas fa-id-card"></i> Профиль
                 </router-link>
                 <div class="divider"></div>
-                <button class="dropdown-item danger" @click="userStore.logout()">
+                <button class="dropdown-item danger" @click="handleLogout">
                   <i class="fas fa-sign-out-alt"></i> Выйти
                 </button>
               </div>
             </transition>
           </div>
         </template>
+
         <template v-else>
-          <a href="/steam/login/" class="btn btn-primary steam-btn">
-            <i class="fab fa-steam"></i> Войти
-          </a>
+          <router-link to="/login" class="btn btn-ghost auth-btn">
+            <i class="fas fa-sign-in-alt"></i> Войти
+          </router-link>
+          <router-link to="/register" class="btn btn-primary auth-btn">
+            <i class="fas fa-user-plus"></i> Регистрация
+          </router-link>
         </template>
       </div>
     </div>
@@ -67,16 +75,27 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '../../stores/user'
 
 const userStore = useUserStore()
+const router = useRouter()
 const menuOpen = ref(false)
 
 function toggleMenu(e) {
   e.stopPropagation()
   menuOpen.value = !menuOpen.value
 }
-function closeMenu() { menuOpen.value = false }
+
+function closeMenu() {
+  menuOpen.value = false
+}
+
+async function handleLogout() {
+  await userStore.logout()
+  router.push('/')
+}
+
 function formatMoney(n) {
   return new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₽'
 }
@@ -95,6 +114,7 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--glass-border);
 }
+
 .header-inner {
   display: flex;
   align-items: center;
@@ -102,6 +122,7 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   height: 76px;
   gap: 24px;
 }
+
 .logo {
   display: flex;
   align-items: center;
@@ -109,31 +130,45 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   font-weight: 900;
   font-size: 18px;
   letter-spacing: -0.02em;
+  flex-shrink: 0;
 }
+
 .logo-icon {
-  width: 40px; height: 40px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
   color: #fff;
   font-size: 18px;
   box-shadow: 0 8px 24px var(--primary-glow);
   transition: var(--transition);
 }
-.logo:hover .logo-icon { transform: rotate(-10deg) scale(1.05); }
-.logo-text { font-size: 18px; }
+
+.logo:hover .logo-icon {
+  transform: rotate(-10deg) scale(1.05);
+}
+
+.logo-text {
+  font-size: 18px;
+}
+
 .logo-text .gradient {
   background: linear-gradient(135deg, var(--primary-light), var(--accent-light));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
 .nav {
   display: flex;
   gap: 4px;
   flex: 1;
   justify-content: center;
 }
+
 .nav-link {
   display: flex;
   align-items: center;
@@ -145,25 +180,37 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   font-size: 14px;
   transition: var(--transition);
   position: relative;
+  white-space: nowrap;
 }
-.nav-link:hover { color: var(--text); background: var(--glass); }
+
+.nav-link:hover {
+  color: var(--text);
+  background: var(--glass);
+}
+
 .nav-link.router-link-active {
   color: var(--text);
   background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(6, 182, 212, 0.1));
   border: 1px solid var(--glass-border-hover);
 }
+
 .nav-link.router-link-active::after {
   content: '';
   position: absolute;
-  bottom: -1px; left: 20%; right: 20%;
+  bottom: -1px;
+  left: 20%;
+  right: 20%;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--primary), transparent);
 }
+
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
+
 .balance-badge {
   display: flex;
   align-items: center;
@@ -177,8 +224,15 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   color: var(--gold);
   box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
 }
-.balance-badge i { font-size: 14px; }
-.user-menu { position: relative; }
+
+.balance-badge i {
+  font-size: 14px;
+}
+
+.user-menu {
+  position: relative;
+}
+
 .user-btn {
   display: flex;
   align-items: center;
@@ -192,11 +246,37 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   font-size: 14px;
   transition: var(--transition);
 }
-.user-btn:hover { border-color: var(--glass-border-hover); background: var(--glass-hover); }
-.avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
-.user-btn > i.fa-user-circle { font-size: 24px; color: var(--primary-light); }
-.username { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.caret { font-size: 10px; color: var(--text-muted); }
+
+.user-btn:hover {
+  border-color: var(--glass-border-hover);
+  background: var(--glass-hover);
+}
+
+.avatar-placeholder {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.username {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caret {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
 .dropdown {
   position: absolute;
   top: calc(100% + 10px);
@@ -208,7 +288,9 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   border-radius: 14px;
   padding: 6px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+  z-index: 100;
 }
+
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -223,18 +305,71 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
   border: none;
   text-align: left;
   transition: var(--transition);
+  cursor: pointer;
 }
-.dropdown-item:hover { background: var(--glass); color: var(--primary-light); }
-.dropdown-item.danger:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-.dropdown-item i { width: 16px; color: var(--primary-light); }
-.dropdown-item.danger i { color: var(--danger); }
-.divider { height: 1px; background: var(--glass-border); margin: 4px 0; }
-.steam-btn { padding: 10px 20px; }
-.drop-enter-active, .drop-leave-active { transition: var(--transition); }
-.drop-enter-from, .drop-leave-to { opacity: 0; transform: translateY(-8px); }
 
-@media (max-width: 900px) {
-  .nav { display: none; }
-  .username { display: none; }
+.dropdown-item:hover {
+  background: var(--glass);
+  color: var(--primary-light);
+}
+
+.dropdown-item.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.dropdown-item i {
+  width: 16px;
+  color: var(--primary-light);
+}
+
+.dropdown-item.danger i {
+  color: var(--danger);
+}
+
+.divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 4px 0;
+}
+
+.auth-btn {
+  padding: 10px 20px;
+}
+
+.drop-enter-active,
+.drop-leave-active {
+  transition: var(--transition);
+}
+
+.drop-enter-from,
+.drop-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+@media (max-width: 1100px) {
+  .nav-link {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .nav-link i {
+    display: none;
+  }
+  .username {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav {
+    display: none;
+  }
+  .auth-btn span {
+    display: none;
+  }
+  .header-inner {
+    gap: 12px;
+  }
 }
 </style>

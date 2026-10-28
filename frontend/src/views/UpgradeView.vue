@@ -4,7 +4,6 @@
       <h1 class="title">Апгрейд <span class="gradient">Предметов</span></h1>
 
       <div class="upgrade-layout">
-        
 
         <div class="glass-card inventory-panel">
           <h3 class="panel-title"><i class="fas fa-box"></i> Мой инвентарь</h3>
@@ -13,13 +12,18 @@
             <div 
               v-for="inv in inventory" 
               :key="inv.id" 
-              :class="['item-card', `r-${inv.item_details.rarity}`, { active: sourceItem?.id === inv.id }]"
+              :class="['item-card', `r-${itemRarity(inv)}`, { active: sourceItem?.id === inv.id }]"
               @click="sourceItem = inv"
             >
               <div v-if="inv.quantity > 1" class="qty">x{{ inv.quantity }}</div>
-              <i :class="['fas', inv.item_details.icon]"></i>
-              <span class="name">{{ inv.item_details.name }}</span>
-              <span class="price">{{ inv.item_details.price }} ₽</span>
+              
+              <div class="item-img-wrap">
+                <img v-if="inv.item_details?.image_url" :src="inv.item_details.image_url" alt="" />
+                <i v-else :class="['fas', itemIcon(inv)]"></i>
+              </div>
+
+              <span class="name">{{ inv.item_details?.name }}</span>
+              <span class="price">{{ formatMoney(inv.item_details?.price) }}</span>
             </div>
           </div>
         </div>
@@ -44,23 +48,46 @@
           </button>
         </div>
 
-
+  
         <div class="glass-card target-panel">
           <h3 class="panel-title"><i class="fas fa-crosshairs"></i> Желаемый предмет</h3>
-          <div class="items-grid">
+          
+          <div class="filters">
+            <input v-model="searchQuery" class="input search-input" placeholder="Поиск по названию..." />
+            <div class="filter-row">
+              <select v-model="filterRarity" class="input select">
+                <option value="all">Все редкости</option>
+                <option value="common">Обычные</option>
+                <option value="rare">Редкие</option>
+                <option value="epic">Эпические</option>
+                <option value="legendary">Легендарные</option>
+                <option value="ancient">Древние</option>
+              </select>
+              <select v-model="sortBy" class="input select">
+                <option value="price_asc">Цена ↑</option>
+                <option value="price_desc">Цена ↓</option>
+                <option value="name">По названию</option>
+              </select>
+            </div>
+          </div>
+
+          <div v-if="filteredTargets.length === 0" class="empty-msg">Ничего не найдено</div>
+          <div v-else class="items-grid">
             <div 
-              v-for="item in allItems" 
+              v-for="item in filteredTargets" 
               :key="item.id" 
-              :class="['item-card', `r-${item.rarity}`, { active: targetItem?.id === item.id, disabled: sourceItem && item.price <= sourceItem.item_details.price }]"
+              :class="['item-card', `r-${itemRarity(item)}`, { active: targetItem?.id === item.id, disabled: isTargetDisabled(item) }]"
               @click="selectTarget(item)"
             >
-              <i :class="['fas', item.icon]"></i>
+              <div class="item-img-wrap">
+                <img v-if="item.image_url" :src="item.image_url" alt="" />
+                <i v-else :class="['fas', itemIcon(item)]"></i>
+              </div>
               <span class="name">{{ item.name }}</span>
-              <span class="price">{{ item.price }} ₽</span>
+              <span class="price">{{ formatMoney(item.price) }}</span>
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
@@ -68,6 +95,7 @@
     <UpgradeRoulette 
       :visible="modalVisible" 
       :is-win="lastResult.isWin"
+      :chance="Number(chance)"
       :target-item="targetItem" 
       :source-item="sourceItem?.item_details" 
       @close="closeModal" 
@@ -78,7 +106,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import UpgradeRoulette from '../components/upgrade/UpgradeRoulette.vue'
-import { getInventory, getAllItems, doUpgrade } from '../api'
+import { getInventory, getAllItems, doUpgrade, getItemIcon } from '../api'
 import { useUserStore } from '../stores/user'
 import { useToastStore } from '../stores/toast'
 
@@ -87,18 +115,32 @@ const toast = useToastStore()
 
 const inventory = ref([])
 const allItems = ref([])
-const sourceItem = ref(null) // Выбранный предмет из инвентаря
-const targetItem = ref(null) // Выбранный предмет-цель
+const sourceItem = ref(null) 
+const targetItem = ref(null) 
+
+const searchQuery = ref('')
+const filterRarity = ref('all')
+const sortBy = ref('price_asc')
 
 const upgrading = ref(false)
 const modalVisible = ref(false)
 const lastResult = ref({ isWin: false })
 
+const formatMoney = (n) => new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
+
+function itemRarity(invOrItem) {
+  const details = invOrItem.item_details || invOrItem;
+  return details.rarity_class || details.rarity || 'common';
+}
+function itemIcon(invOrItem) {
+  const details = invOrItem.item_details || invOrItem;
+  return details.icon || getItemIcon(details.name);
+}
 
 const chance = computed(() => {
   if (!sourceItem.value || !targetItem.value) return 0
-  const srcPrice = Number(sourceItem.value.item_details.price)
-  const tgtPrice = Number(targetItem.value.price)
+  const srcPrice = Number(sourceItem.value.item_details?.price || 0)
+  const tgtPrice = Number(targetItem.value.price || 0)
   if (tgtPrice <= srcPrice) return 0
   const c = (srcPrice / tgtPrice) * 100
   return Math.min(c, 90).toFixed(1)
@@ -108,7 +150,6 @@ const canUpgrade = computed(() => sourceItem.value && targetItem.value && chance
 
 const circleStyle = computed(() => {
   const c = Number(chance.value)
-
   const dashoffset = 282.7 - (282.7 * c) / 100
   return {
     strokeDasharray: 282.7,
@@ -117,8 +158,35 @@ const circleStyle = computed(() => {
   }
 })
 
+const filteredTargets = computed(() => {
+  let result = allItems.value
+
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase().trim()
+    result = result.filter(i => i.name.toLowerCase().includes(q))
+  }
+
+  if (filterRarity.value !== 'all') {
+    result = result.filter(i => itemRarity(i) === filterRarity.value)
+  }
+
+  result = [...result].sort((a, b) => {
+    if (sortBy.value === 'price_asc') return Number(a.price) - Number(b.price)
+    if (sortBy.value === 'price_desc') return Number(b.price) - Number(a.price)
+    if (sortBy.value === 'name') return a.name.localeCompare(b.name)
+    return 0
+  })
+
+  return result
+})
+
+function isTargetDisabled(item) {
+  if (!sourceItem.value) return false
+  return Number(item.price) <= Number(sourceItem.value.item_details?.price)
+}
+
 function selectTarget(item) {
-  if (sourceItem.value && Number(item.price) <= Number(sourceItem.value.item_details.price)) {
+  if (isTargetDisabled(item)) {
     toast.info('Целевой предмет должен быть дороже выбранного')
     return
   }
@@ -144,16 +212,12 @@ async function handleUpgrade() {
     if (res.success) {
       lastResult.value.isWin = res.is_win
       modalVisible.value = true
-      inventory.value = res.inventory // Обновляем инвентарь с бэка
-      
-      if (!res.is_win) {
-        toast.error('Предмет сгорел :(')
-      }
+      inventory.value = res.inventory
     } else {
       toast.error(res.error)
     }
   } catch (e) {
-    toast.error('Ошибка сети')
+    toast.error(e.response?.data?.error || 'Ошибка сети')
   } finally {
     upgrading.value = false
   }
@@ -161,7 +225,6 @@ async function handleUpgrade() {
 
 function closeModal() {
   modalVisible.value = false
-  // Сбрасываем выбор после апгрейда
   if (lastResult.value.isWin) {
     sourceItem.value = null
     targetItem.value = null
@@ -173,7 +236,7 @@ function closeModal() {
 onMounted(async () => {
   if (!userStore.loaded) await userStore.fetchUser()
   if (!userStore.isAuth) {
-    toast.error('Войдите через Steam')
+    toast.error('Войдите, чтобы делать апгрейды')
     return
   }
   await loadData()
@@ -213,7 +276,7 @@ onMounted(async () => {
   background: rgba(0,0,0,0.3);
   border: 2px solid var(--glass-border);
   border-radius: 12px;
-  padding: 16px 12px;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -225,17 +288,35 @@ onMounted(async () => {
 .item-card.active { border-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); background: rgba(168,85,247,0.1); }
 .item-card.disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
 
-.item-card i { font-size: 32px; color: #fff; opacity: 0.9; }
+.item-img-wrap {
+  height: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.item-img-wrap img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+}
+.item-img-wrap i {
+  font-size: 32px; 
+  color: #fff; 
+  opacity: 0.9;
+}
+
 .item-card .name { font-size: 11px; text-align: center; font-weight: 700; line-height: 1.2; height: 26px; overflow: hidden; }
 .item-card .price { font-size: 12px; color: var(--gold); font-weight: 800; }
-.qty { position: absolute; top: 4px; right: 4px; background: #000; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 800; }
+.qty { position: absolute; top: 4px; right: 4px; background: #000; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 800; z-index: 2; }
 
 .item-card.r-common { border-color: rgba(148,163,184,0.3); }
 .item-card.r-rare { border-color: rgba(16,185,129,0.4); }
 .item-card.r-epic { border-color: rgba(168,85,247,0.5); }
 .item-card.r-legendary { border-color: rgba(251,191,36,0.6); }
 .item-card.r-ancient { border-color: rgba(239,68,68,0.7); }
-
 
 .center-panel {
   display: flex;
@@ -271,9 +352,22 @@ onMounted(async () => {
 
 .empty-msg { text-align: center; color: var(--text-muted); padding: 20px; font-size: 14px; }
 
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.search-input { padding: 10px 14px; }
+.filter-row {
+  display: flex;
+  gap: 8px;
+}
+.filter-row .select { flex: 1; padding: 10px 14px; }
+
 @media (max-width: 992px) {
   .upgrade-layout { grid-template-columns: 1fr; }
   .center-panel { position: static; order: -1; }
-  .items-grid { max-height: 300px; }
+  .items-grid { max-height: 400px; }
 }
 </style>

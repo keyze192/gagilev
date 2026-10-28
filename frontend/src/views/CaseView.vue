@@ -13,6 +13,9 @@
       <div v-else-if="!caseData" class="empty">
         <i class="fas fa-box-open"></i>
         <h3>Кейс не найден</h3>
+        <router-link to="/" class="btn btn-primary mt-3">
+          <i class="fas fa-arrow-left"></i> На главную
+        </router-link>
       </div>
 
       <template v-else>
@@ -23,17 +26,33 @@
               <img v-if="caseData.image_url" :src="caseData.image_url" :alt="caseData.name" />
               <i v-else class="fas fa-box"></i>
             </div>
+
             <div class="case-info">
               <h1 class="case-title gradient-text">{{ caseData.name }}</h1>
+
               <div class="price-badge">
                 <i class="fas fa-tag"></i> {{ formatMoney(caseData.price) }}
               </div>
-              <p class="description">{{ caseData.description || 'Откройте кейс и получите скин CS:GO!' }}</p>
+
+              <p class="description">
+                {{ caseData.description || 'Откройте кейс и получите скин CS:GO!' }}
+              </p>
 
               <div v-if="userStore.isAuth" class="balance-row">
                 <i class="fas fa-wallet"></i>
                 <span>Ваш баланс</span>
                 <strong class="price">{{ formatMoney(userStore.balance) }}</strong>
+              </div>
+
+              <div v-if="userStore.isAuth" class="qty-selector">
+                <button 
+                  v-for="n in [1, 2, 3, 4, 5, 10]" 
+                  :key="n" 
+                  :class="['qty-btn', { active: openCount === n }]"
+                  @click="openCount = n"
+                >
+                  x{{ n }}
+                </button>
               </div>
 
               <button
@@ -47,52 +66,77 @@
                   Открываем...
                 </template>
                 <template v-else>
-                  <i class="fas fa-gift"></i> Открыть за {{ formatMoney(caseData.price) }}
+                  <i class="fas fa-gift"></i>
+                  Открыть за {{ formatMoney(caseData.price * openCount) }}
                 </template>
               </button>
 
-              <a v-else href="/steam/login/" class="open-btn btn btn-primary btn-lg">
-                <i class="fab fa-steam"></i> Войти через Steam
-              </a>
+              <router-link v-else to="/login" class="open-btn btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Войти, чтобы открыть
+              </router-link>
             </div>
           </div>
         </div>
 
-
         <div class="mt-4">
-          <h2 class="section-title">Содержимое <span class="gradient">кейса</span></h2>
-          <div class="chances-grid">
+          <h2 class="section-title">
+            Содержимое <span class="gradient">кейса</span>
+          </h2>
+
+          <div v-if="chances.length === 0" class="empty-history">
+            В этом кейсе пока нет предметов
+          </div>
+
+          <div v-else class="chances-grid">
             <div
               v-for="c in chances"
               :key="c.id"
-              :class="['chance-card', `r-${rarityClass(c.item_details?.rarity || c.item?.rarity || 'common')}`]"
+              :class="['chance-card', `r-${chanceRarity(c)}`]"
             >
               <div class="chance-head">
-                <i :class="['fas', getItemIcon(c.item_name || c.item_details?.name)]"></i>
+                <img 
+                  v-if="c.item_details?.image_url" 
+                  :src="c.item_details.image_url" 
+                  alt="" 
+                  class="chance-img" 
+                />
+                <i v-else :class="['fas', chanceIcon(c)]"></i>
                 <span class="chance-value">{{ c.chance }}%</span>
               </div>
-              <div class="chance-name">{{ c.item_name || c.item_details?.name || 'Предмет' }}</div>
+              <div class="chance-name">
+                {{ c.item_details?.name || c.item_name || 'Предмет' }}
+              </div>
+              <div class="chance-price">
+                {{ formatMoney(c.item_details?.price) }}
+              </div>
             </div>
           </div>
         </div>
 
         <div class="mt-4">
-          <h2 class="section-title">Последние <span class="gradient">открытия</span></h2>
+          <h2 class="section-title">
+            Последние <span class="gradient">открытия</span>
+          </h2>
+
           <div v-if="historyLoading" class="loading-center">
             <div class="loader"></div>
           </div>
+
           <div v-else-if="history.length === 0" class="empty-history">
             Пока нет открытий этого кейса
           </div>
+
           <div v-else class="history-list">
             <div
               v-for="(h, i) in history"
               :key="i"
-              :class="['history-item', `r-${h.rarity}`]"
+              :class="['history-item', `r-${h.rarity || 'common'}`]"
             >
-              <div class="h-user"><i class="fas fa-user-circle"></i> {{ h.username }}</div>
+              <div class="h-user">
+                <i class="fas fa-user-circle"></i> {{ h.user_name }}
+              </div>
               <div class="h-item">{{ h.item_name }}</div>
-              <div class="h-price price">{{ h.item_price }} ₽</div>
+              <div class="h-price price">{{ formatMoney(h.item_price) }}</div>
               <div class="h-time">{{ h.time_ago }}</div>
             </div>
           </div>
@@ -102,7 +146,7 @@
       <RouletteModal
         :visible="modalVisible"
         :all-items="wonData?.all_items || []"
-        :winner="wonData?.item || null"
+        :winners="wonData?.items || []"
         :new-balance="wonData?.new_balance || 0"
         @close="modalVisible = false"
         @reopen="handleOpen"
@@ -113,13 +157,20 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import RouletteModal from '../components/case/RouletteModal.vue'
-import { getCase, getCaseChances, openCase, getCaseHistory, getItemIcon, rarityClass } from '../api'
+import {
+  getCase,
+  getCaseChances,
+  openCase,
+  getCaseHistory,
+  getItemIcon,
+} from '../api'
 import { useUserStore } from '../stores/user'
 import { useToastStore } from '../stores/toast'
 
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const toast = useToastStore()
 
@@ -131,8 +182,21 @@ const historyLoading = ref(false)
 const opening = ref(false)
 const modalVisible = ref(false)
 const wonData = ref(null)
+const openCount = ref(1)
 
-const formatMoney = (n) => new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₽'
+const formatMoney = (n) =>
+  new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
+
+function chanceRarity(c) {
+  return (
+    c.item_details?.rarity_class ||
+    c.item_details?.rarity ||
+    'common'
+  ).toLowerCase()
+}
+function chanceIcon(c) {
+  return c.item_details?.icon || getItemIcon(c.item_details?.name || c.item_name)
+}
 
 async function loadHistory() {
   if (!route.params.id) return
@@ -140,36 +204,44 @@ async function loadHistory() {
   try {
     const data = await getCaseHistory(route.params.id)
     history.value = data.history || []
-  } catch (e) { console.error(e) }
-  finally { historyLoading.value = false }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    historyLoading.value = false
+  }
 }
 
 async function handleOpen() {
-  if (opening.value || !userStore.isAuth) return
-  if (userStore.balance < caseData.value.price) {
+  if (opening.value) return
+
+  if (!userStore.isAuth) {
+    toast.error('Войдите, чтобы открыть кейс')
+    setTimeout(() => router.push('/login'), 800)
+    return
+  }
+
+  const totalCost = caseData.value.price * openCount.value
+  if (userStore.balance < totalCost) {
     toast.error('Недостаточно средств')
     return
   }
 
   opening.value = true
   try {
-    const data = await openCase(caseData.value.id)
+    const data = await openCase(caseData.value.id, openCount.value)
+
     if (!data.success) {
-      if (data.need_auth) {
-        toast.error('Войдите через Steam')
-        setTimeout(() => window.location.href = '/steam/login/', 1000)
-      } else {
-        toast.error(data.error || 'Ошибка открытия')
-      }
+      toast.error(data.error || 'Ошибка открытия')
       return
     }
+
     wonData.value = data
     modalVisible.value = true
     userStore.setBalance(data.new_balance)
     loadHistory()
   } catch (e) {
     console.error(e)
-    toast.error('Ошибка сети')
+    toast.error(e.response?.data?.error || 'Ошибка сети')
   } finally {
     opening.value = false
   }
@@ -178,7 +250,7 @@ async function handleOpen() {
 onMounted(async () => {
   try {
     caseData.value = await getCase(route.params.id)
-    chances.value = await getCaseChances(route.params.id)
+    chances.value = (await getCaseChances(route.params.id)) || []
     loadHistory()
   } catch (e) {
     console.error(e)
@@ -203,8 +275,10 @@ onMounted(async () => {
 }
 .hero-glow {
   position: absolute;
-  top: -150px; right: -150px;
-  width: 500px; height: 500px;
+  top: -150px;
+  right: -150px;
+  width: 500px;
+  height: 500px;
   background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
   pointer-events: none;
   animation: float 8s ease-in-out infinite;
@@ -218,15 +292,25 @@ onMounted(async () => {
 }
 .case-image {
   flex-shrink: 0;
-  width: 200px; height: 200px;
+  width: 200px;
+  height: 200px;
   border-radius: var(--radius);
   background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 90px;
   color: var(--primary-light);
 }
-.case-image img { max-height: 100%; object-fit: contain; filter: drop-shadow(0 20px 40px var(--primary-glow)); }
-.case-info { flex: 1; }
+.case-image img {
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 40px var(--primary-glow));
+}
+.case-info {
+  flex: 1;
+  min-width: 0;
+}
 .gradient-text {
   font-size: clamp(28px, 4vw, 42px);
   font-weight: 900;
@@ -272,6 +356,30 @@ onMounted(async () => {
 .balance-row strong { margin-left: auto; font-size: 20px; }
 .open-btn { width: 100%; }
 
+.qty-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.qty-btn {
+  flex: 1;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.qty-btn:hover { background: var(--glass-hover); color: var(--text); }
+.qty-btn.active {
+  background: var(--primary);
+  border-color: var(--primary-light);
+  color: #fff;
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+
 .chances-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -285,11 +393,11 @@ onMounted(async () => {
   transition: var(--transition);
 }
 .chance-card:hover { transform: translateY(-2px); }
-.chance-card.r-common    { border-color: rgba(148, 163, 184, 0.35); }
-.chance-card.r-rare      { border-color: rgba(16, 185, 129, 0.45); }
-.chance-card.r-epic      { border-color: rgba(168, 85, 247, 0.45); }
+.chance-card.r-common { border-color: rgba(148, 163, 184, 0.35); }
+.chance-card.r-rare { border-color: rgba(16, 185, 129, 0.45); }
+.chance-card.r-epic { border-color: rgba(168, 85, 247, 0.45); }
 .chance-card.r-legendary { border-color: rgba(251, 191, 36, 0.55); }
-.chance-card.r-ancient   { border-color: rgba(239, 68, 68, 0.65); }
+.chance-card.r-ancient { border-color: rgba(239, 68, 68, 0.65); }
 .chance-head {
   display: flex;
   justify-content: space-between;
@@ -297,8 +405,15 @@ onMounted(async () => {
   margin-bottom: 8px;
 }
 .chance-head i { font-size: 20px; color: var(--text-muted); }
+.chance-img {
+  height: 35px;
+  width: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
 .chance-value { font-weight: 900; color: var(--primary-light); font-size: 14px; }
-.chance-name { font-size: 13px; font-weight: 700; }
+.chance-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.chance-price { font-size: 12px; color: var(--gold); font-weight: 700; }
 
 .history-list { display: flex; flex-direction: column; gap: 8px; }
 .history-item {
@@ -318,15 +433,19 @@ onMounted(async () => {
 .history-item.r-ancient { border-left: 3px solid var(--r-ancient); }
 .history-item.r-epic { border-left: 3px solid var(--r-epic); }
 .history-item.r-rare { border-left: 3px solid var(--r-rare); }
-.h-user { color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-.h-item { font-weight: 700; }
+.h-user { color: var(--text-muted); display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.h-item { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .h-time { color: var(--text-dim); font-size: 12px; text-align: right; }
 .empty-history { padding: 40px; text-align: center; color: var(--text-muted); }
 .empty { text-align: center; padding: 80px 20px; color: var(--text-muted); }
 .empty i { font-size: 56px; color: var(--primary); opacity: 0.5; margin-bottom: 16px; }
 
 @media (max-width: 768px) {
+  .hero { padding: 24px; }
   .hero-content { flex-direction: column; text-align: center; }
-  .history-item { grid-template-columns: 1fr 1fr; }
+  .case-image { width: 140px; height: 140px; font-size: 64px; }
+  .balance-row { justify-content: space-between; }
+  .history-item { grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; }
+  .h-time { text-align: left; }
 }
 </style>
