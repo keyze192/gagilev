@@ -22,7 +22,6 @@ export const getCurrentUser = async () => {
   }
 }
 
-
 export const getUsers = async () => {
   const { data } = await api.get('/users/')
   return data.results || data
@@ -31,7 +30,6 @@ export const getUsers = async () => {
 export const deleteUser = async (id) => {
   await api.delete(`/users/${id}/`)
 }
-
 
 export const getCases = async (params = {}) => {
   const { data } = await api.get('/cases/', { params })
@@ -57,7 +55,6 @@ export const openCase = async (caseId, count = 1) => {
   const { data } = await api.post(`/cases/${caseId}/open/`, { count })
   return data
 }
-
 
 export const getInventory = async () => {
   const { data } = await api.get('/inventory/')
@@ -87,21 +84,31 @@ export const doUpgrade = async (inventoryId, targetItemId) => {
   return data
 }
 
+const RARITY_LABELS = {
+  common: 'Обычный',
+  rare: 'Редкий',
+  epic: 'Эпический',
+  legendary: 'Легендарный',
+  ancient: 'Древний',
+}
+
+const normalizeRarity = (r) => String(r || 'common').toLowerCase()
+
+export const rarityClass = (rarity = 'common') => normalizeRarity(rarity)
+
+export const rarityName = (rarity = 'common') => RARITY_LABELS[normalizeRarity(rarity)] || 'Обычный'
 
 export const getItemIcon = (name = '') => {
-  const n = name.toLowerCase()
+  const n = String(name).toLowerCase()
   if (n.includes('нож') || n.includes('knife')) return 'fa-crosshairs'
   if (n.includes('перчатк') || n.includes('glove')) return 'fa-hand-paper'
   if (/ak|awp|m4|deagle|usp|glock|famas/.test(n)) return 'fa-gun'
   return 'fa-cube'
 }
 
-export const rarityClass = (rarity = 'common') => (rarity || 'common').toLowerCase()
-
-export const rarityName = (rarity = 'common') => {
-  const map = {
-    common: 'Обычный', rare: 'Редкий', epic: 'Эпический',
-    legendary: 'Легендарный', ancient: 'Древний',
-  }
-  return map[(rarity || 'common').toLowerCase()] || 'Обычный'
+export const doContract = async (inventoryIds) => {
+  const { data } = await api.post('/inventory/contract/', {
+    inventory_ids: inventoryIds,
+  })
+  return data
 }

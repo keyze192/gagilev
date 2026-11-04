@@ -17,7 +17,7 @@ from .serializers import (
     CaseOpeningSerializer, UserInventorySerializer,
 )
 from .permissions import IsAdminOrReadOnly, IsOwnerOrAdmin
-
+from .utils import get_profile
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -34,7 +34,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_staff or user.is_superuser:
             return qs
-        profile = getattr(user, 'profile', None)
+        profile = get_profile(user)
         if profile and profile.is_admin:
             return qs
         if profile:
@@ -42,17 +42,16 @@ class UsersViewSet(viewsets.ModelViewSet):
         return Users.objects.none()
 
     def get_serializer_class(self):
-
         if self.action in ('update', 'partial_update'):
             user = self.request.user
-            profile = getattr(user, 'profile', None)
+            profile = get_profile(user)
             if not (user.is_staff or (profile and profile.is_admin)):
                 return UsersSelfUpdateSerializer
         return UsersSerializer
 
     @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
     def me(self, request):
-        profile = getattr(request.user, 'profile', None)
+        profile = get_profile(request.user)
         if not profile:
             return Response({'detail': 'Профиль не найден'},
                             status=status.HTTP_404_NOT_FOUND)
@@ -65,6 +64,7 @@ class UsersViewSet(viewsets.ModelViewSet):
             serializer.save()
 
         return Response(UsersSerializer(profile).data)
+
 
 class ItemsViewSet(viewsets.ModelViewSet):
     queryset = Items.objects.all()
@@ -108,16 +108,15 @@ class CasesViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def open(self, request, pk=None):
         case = self.get_object()
-        user_profile = getattr(request.user, 'profile', None)
+        user_profile = get_profile(request.user)
         if not user_profile:
             return Response({'error': 'Профиль не найден'}, status=400)
 
-        # Получаем количество кейсов (по умолчанию 1)
         try:
             count = int(request.data.get('count', 1))
-        except ValueError:
-            count = 1
-        
+        except (ValueError, TypeError):
+            return Response({'error': 'Некорректное количество'}, status=400)
+
         if count < 1 or count > 10:
             return Response({'error': 'Можно открыть от 1 до 10 кейсов'}, status=400)
 
@@ -127,12 +126,13 @@ class CasesViewSet(viewsets.ModelViewSet):
         if not chances:
             return Response({'error': 'В кейсе нет предметов'}, status=400)
 
-        total_price = case.price * count
+        case_price = int(case.price)
+        total_price = case_price * count
 
         with transaction.atomic():
             profile = Users.objects.select_for_update().get(pk=user_profile.pk)
 
-            if profile.balance < total_price:
+            if int(profile.balance) < total_price:
                 return Response({'error': 'Недостаточно средств'}, status=400)
 
             total_chance = sum(float(c.chance) for c in chances)
@@ -147,10 +147,10 @@ class CasesViewSet(viewsets.ModelViewSet):
                     if r <= cumulative:
                         chosen = c.item
                         break
-                
+
                 won_items.append(chosen)
                 CaseOpening.objects.create(user=profile, case=case, item=chosen)
-                
+
                 inv, created = UserInventory.objects.get_or_create(
                     user=profile, item=chosen, defaults={'quantity': 1}
                 )
@@ -158,19 +158,25 @@ class CasesViewSet(viewsets.ModelViewSet):
                     inv.quantity += 1
                     inv.save()
 
-            profile.balance -= total_price
+            profile.balance = int(profile.balance) - total_price
             profile.save()
 
-        all_items = [ItemsSerializer(c.item).data for c in chances]
+        seen = set()
+        unique_items = []
+        for c in chances:
+            if c.item.id not in seen:
+                seen.add(c.item.id)
+                unique_items.append(c.item)
+
+        all_items = [ItemsSerializer(i).data for i in unique_items]
         won_serialized = [ItemsSerializer(item).data for item in won_items]
 
         return Response({
             'success': True,
-            'items': won_serialized, # Массив всех выигранных предметов
+            'items': won_serialized,
             'all_items': all_items,
-            'new_balance': float(profile.balance),
+            'new_balance': int(profile.balance),
         })
-
 
 
 class ChanceViewSet(viewsets.ModelViewSet):
@@ -193,13 +199,12 @@ class ContractViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_staff or user.is_superuser:
             return self.queryset
-        profile = getattr(user, 'profile', None)
+        profile = get_profile(user)
         if profile and profile.is_admin:
             return self.queryset
         if profile:
             return self.queryset.filter(user=profile)
         return Contract.objects.none()
-
 
 
 class UpgradeViewSet(viewsets.ModelViewSet):
@@ -214,7 +219,7 @@ class UpgradeViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.is_staff or user.is_superuser:
             return self.queryset
-        profile = getattr(user, 'profile', None)
+        profile = get_profile(user)
         if profile and profile.is_admin:
             return self.queryset
         if profile:
@@ -231,9 +236,7 @@ class CaseOpeningViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = ['opened_at']
 
 
-
 class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
-
     queryset = UserInventory.objects.select_related('user', 'item').all()
     serializer_class = UserInventorySerializer
     permission_classes = [IsAuthenticated, IsOwnerOrAdmin]
@@ -245,7 +248,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user
         if user.is_staff or user.is_superuser:
             return self.queryset
-        profile = getattr(user, 'profile', None)
+        profile = get_profile(user)
         if profile and profile.is_admin:
             return self.queryset
         if profile:
@@ -254,10 +257,9 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=True, methods=['post'])
     def sell(self, request, pk=None):
-
         inv = self.get_object()
         user_profile = inv.user
-        sell_price = inv.item.price  
+        sell_price = inv.item.price
 
         with transaction.atomic():
             profile = Users.objects.select_for_update().get(pk=user_profile.pk)
@@ -277,8 +279,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='sell-all')
     def sell_all(self, request):
-
-        user_profile = getattr(request.user, 'profile', None)
+        user_profile = get_profile(request.user)
         if not user_profile:
             return Response({'error': 'Профиль не найден'}, status=400)
 
@@ -303,8 +304,7 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='upgrade')
     def upgrade(self, request):
-        """POST /api/v1/inventory/upgrade/ — апгрейд предмета."""
-        user_profile = getattr(request.user, 'profile', None)
+        user_profile = get_profile(request.user)
         if not user_profile:
             return Response({'error': 'Профиль не найден'}, status=400)
 
@@ -339,13 +339,11 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             roll = random.uniform(0, 100)
             is_win = roll <= chance
 
-
             if inv.quantity > 1:
                 inv.quantity -= 1
                 inv.save()
             else:
                 inv.delete()
-
 
             if is_win:
                 new_inv, created = UserInventory.objects.get_or_create(
@@ -373,5 +371,83 @@ class UserInventoryViewSet(viewsets.ReadOnlyModelViewSet):
             'is_win': is_win,
             'chance': round(chance, 2),
             'new_balance': float(user_profile.balance),
+            'inventory': inv_list,
+        })
+    
+    @action(detail=False, methods=['post'], url_path='contract')
+    def contract(self, request):
+        user_profile = get_profile(request.user)
+        if not user_profile:
+            return Response({'error': 'Профиль не найден'}, status=400)
+
+        inv_ids = request.data.get('inventory_ids', [])
+        
+        if not isinstance(inv_ids, list) or not (3 <= len(inv_ids) <= 10):
+            return Response({'error': 'Нужно выбрать от 3 до 10 предметов'}, status=400)
+
+        with transaction.atomic():
+
+            from collections import Counter
+            id_counts = Counter(inv_ids)
+
+            inventories = UserInventory.objects.select_for_update().select_related('item').filter(
+                id__in=id_counts.keys(), user=user_profile
+            )
+
+
+            for inv in inventories:
+                needed = id_counts[inv.id]
+                if inv.quantity < needed:
+                    return Response({'error': f'Недостаточно предметов: {inv.item.name}'}, status=400)
+
+            total_price = sum(float(inv.item.price) * id_counts[inv.id] for inv in inventories)
+            
+            # Списание
+            for inv in inventories:
+                needed = id_counts[inv.id]
+                if inv.quantity > needed:
+                    inv.quantity -= needed
+                    inv.save()
+                else:
+                    inv.delete()
+
+
+            roll = random.uniform(0, 100)
+            if roll <= 60:
+                min_p, max_p = 0, total_price
+            elif roll <= 90:
+                min_p, max_p = total_price, total_price * 1.5
+            else:
+                min_p, max_p = total_price * 1.5, total_price * 3.0
+
+            candidates = list(Items.objects.filter(price__gte=min_p, price__lte=max_p))
+            if not candidates:
+                won_item = Items.objects.order_by('price').first() if roll <= 60 else Items.objects.order_by('-price').first()
+            else:
+                won_item = random.choice(candidates)
+
+            if not won_item:
+                return Response({'error': 'В базе нет предметов'}, status=400)
+
+            new_inv, created = UserInventory.objects.get_or_create(
+                user=user_profile, item=won_item, defaults={'quantity': 1}
+            )
+            if not created:
+                new_inv.quantity += 1
+                new_inv.save()
+
+            inventory = UserInventory.objects.filter(user=user_profile).select_related('item')
+            inv_list = [
+                {
+                    'id': i.id,
+                    'quantity': i.quantity,
+                    'item_details': ItemsSerializer(i.item).data,
+                }
+                for i in inventory
+            ]
+
+        return Response({
+            'success': True,
+            'won_item': ItemsSerializer(won_item).data,
             'inventory': inv_list,
         })

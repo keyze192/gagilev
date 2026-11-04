@@ -7,7 +7,6 @@
         <div class="loader loader-lg"></div>
       </div>
 
-
       <div v-else-if="!userStore.isAuth" class="auth-required glass-card">
         <i class="fas fa-user-lock"></i>
         <h3>Войдите, чтобы увидеть профиль</h3>
@@ -21,7 +20,6 @@
           </router-link>
         </div>
       </div>
-
 
       <template v-else>
 
@@ -66,7 +64,6 @@
           </div>
         </div>
 
-  
         <div class="inv-section">
           <div class="inv-header">
             <h2 class="section-title">Мой <span class="gradient">Инвентарь</span></h2>
@@ -81,7 +78,6 @@
               {{ sellingAll ? 'Продаём...' : `Продать всё за ${formatMoney(totalValue)}` }}
             </button>
           </div>
-
 
           <div v-if="inventory.length === 0" class="empty-inv glass-card">
             <i class="fas fa-box-open"></i>
@@ -101,10 +97,10 @@
               <div v-if="inv.quantity > 1" class="qty-badge">x{{ inv.quantity }}</div>
 
               <div :class="['inv-icon', `bg-${rarityClass(inv)}`]">
-                <img 
-                  v-if="inv.item_details?.image_url" 
-                  :src="inv.item_details.image_url" 
-                  style="max-height: 80%; max-width: 80%; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));" 
+                <img
+                  v-if="inv.item_details?.image_url"
+                  :src="inv.item_details.image_url"
+                  style="max-height: 80%; max-width: 80%; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));"
                 />
                 <i v-else :class="['fas', itemIcon(inv)]"></i>
               </div>
@@ -155,14 +151,16 @@ const totalValue = computed(() =>
 const formatMoney = (n) =>
   new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 
-// Берём редкость из бэка (после Блока 2.1 она приходит прямо в item_details)
 function rarityClass(inv) {
-  return (inv.item_details?.rarity_class || inv.item_details?.rarity || 'common').toLowerCase()
+  const r = inv.item_details?.rarity_class || inv.item_details?.rarity || 'common'
+  return String(r).toLowerCase()
 }
+
 function rarityName(inv) {
-  return inv.item_details?.rarity_name || getRarityName(inv.item_details?.rarity)
+  return inv.item_details?.rarity_name
+    || getRarityName(rarityClass(inv))
 }
-// Берём иконку из бэка, fallback — локальная функция по имени
+
 function itemIcon(inv) {
   return inv.item_details?.icon || getItemIcon(inv.item_details?.name)
 }
@@ -387,7 +385,6 @@ onMounted(async () => {
   letter-spacing: 0.05em;
 }
 
- 
 .inv-header {
   display: flex;
   justify-content: space-between;

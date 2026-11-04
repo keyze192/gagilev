@@ -97,7 +97,7 @@ async function handleLogout() {
 }
 
 function formatMoney(n) {
-  return new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₽'
+  return new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 }
 
 onMounted(() => document.addEventListener('click', closeMenu))
@@ -363,9 +363,6 @@ onUnmounted(() => document.removeEventListener('click', closeMenu))
 
 @media (max-width: 768px) {
   .nav {
-    display: none;
-  }
-  .auth-btn span {
     display: none;
   }
   .header-inner {

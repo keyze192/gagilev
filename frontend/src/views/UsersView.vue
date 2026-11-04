@@ -6,6 +6,15 @@
       <div class="loader loader-lg"></div>
     </div>
 
+    <div v-else-if="error" class="empty glass-card">
+      <i class="fas fa-exclamation-triangle"></i>
+      <h3>Не удалось загрузить пользователей</h3>
+      <p>{{ error }}</p>
+      <button class="btn btn-primary mt-3" @click="loadUsers">
+        <i class="fas fa-redo"></i> Повторить
+      </button>
+    </div>
+
     <div v-else class="glass-card">
       <table class="data-table">
         <thead>
@@ -22,17 +31,26 @@
             <td>{{ user.id }}</td>
             <td>
               <div class="user-info">
-                <img v-if="user.steam_avatar" :src="user.steam_avatar" class="mini-avatar" />
-                <span>{{ user.display_name }}</span>
+                <img v-if="user.steam_avatar" :src="user.steam_avatar" class="mini-avatar" alt="" />
+                <span>{{ user.display_name || user.user_name || '—' }}</span>
               </div>
             </td>
             <td>{{ user.steam_id || 'Нет' }}</td>
-            <td class="price">{{ user.balance }} ₽</td>
+            <td class="price">{{ formatMoney(user.balance) }}</td>
             <td>
-              <button class="btn btn-ghost btn-sm" @click="deleteUserItem(user.id)" title="Удалить">
-                <i class="fas fa-trash"></i>
+              <button
+                class="btn btn-ghost btn-sm"
+                @click="deleteUserItem(user.id)"
+                title="Удалить"
+                :disabled="deletingIds.has(user.id)"
+              >
+                <i v-if="deletingIds.has(user.id)" class="fas fa-spinner fa-spin"></i>
+                <i v-else class="fas fa-trash"></i>
               </button>
             </td>
+          </tr>
+          <tr v-if="users.length === 0">
+            <td colspan="5" class="empty-row">Пользователей пока нет</td>
           </tr>
         </tbody>
       </table>
@@ -43,16 +61,25 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getUsers, deleteUser } from '../api'
+import { useToastStore } from '../stores/toast'
+
+const toast = useToastStore()
 
 const users = ref([])
 const loading = ref(true)
+const error = ref('')
+const deletingIds = ref(new Set())
+
+const formatMoney = (n) =>
+  new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 
 const loadUsers = async () => {
   loading.value = true
+  error.value = ''
   try {
     users.value = await getUsers()
   } catch (e) {
-    console.error('Ошибка загрузки:', e)
+    error.value = e.response?.data?.detail || 'Ошибка сети'
   } finally {
     loading.value = false
   }
@@ -60,11 +87,15 @@ const loadUsers = async () => {
 
 const deleteUserItem = async (id) => {
   if (!confirm('Удалить пользователя?')) return
+  deletingIds.value.add(id)
   try {
     await deleteUser(id)
-    loadUsers() 
+    toast.success('Пользователь удалён')
+    await loadUsers()
   } catch (e) {
-    alert('Ошибка удаления (нужны права админа)')
+    toast.error(e.response?.data?.detail || 'Ошибка удаления (нужны права админа)')
+  } finally {
+    deletingIds.value.delete(id)
   }
 }
 
@@ -74,6 +105,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.empty {
+  text-align: center;
+  padding: 60px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+.empty i {
+  font-size: 56px;
+  color: var(--danger);
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+.empty h3 {
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -98,9 +149,15 @@ onMounted(() => {
   width: 24px;
   height: 24px;
   border-radius: 50%;
+  object-fit: cover;
 }
 .btn-sm {
   padding: 6px 12px;
   font-size: 12px;
+}
+.empty-row {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 30px;
 }
 </style>

@@ -8,6 +8,7 @@ from django.db import transaction
 
 from .models import Users
 from .serializers import UsersSerializer
+from .utils import get_profile
 
 
 @api_view(['POST'])
@@ -45,7 +46,7 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
     if not user:
         return Response({'error': 'Неверный логин или пароль'}, status=400)
-    profile = getattr(user, 'profile', None)
+    profile = get_profile(user)
     if not profile:
         return Response({'error': 'Профиль не найден'}, status=400)
     token, _ = Token.objects.get_or_create(user=user)

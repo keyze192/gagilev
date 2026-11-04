@@ -28,7 +28,6 @@
           </div>
         </div>
 
-
         <div v-else-if="stage === 'result'" class="result-card">
           <div :class="['result-icon', isWin ? 'win' : 'lose']">
             <i :class="['fas', isWin ? 'fa-trophy' : 'fa-times']"></i>
@@ -57,7 +56,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 const props = defineProps({
   visible: Boolean,
   isWin: Boolean,
-  chance: { type: Number, default: 0 },  
+  chance: { type: Number, default: 0 },
   targetItem: Object,
   sourceItem: Object,
 })
@@ -69,9 +68,7 @@ const spinning = ref(false)
 
 const formatMoney = (n) => new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 
-
-const winAngle = computed(() => Math.max(0.5, Math.min(props.chance, 90)) * 3.6)
-
+const winAngle = computed(() => Math.max(0.5, Math.min(Number(props.chance) || 0, 90)) * 3.6)
 
 const segmentStyle = computed(() => ({
   background: `conic-gradient(
@@ -80,7 +77,6 @@ const segmentStyle = computed(() => ({
     var(--danger) ${winAngle.value}deg 360deg
   )`,
 }))
-
 
 const wheelStyle = computed(() => ({
   transform: `rotate(${rotation.value}deg)`,
@@ -91,12 +87,10 @@ const wheelStyle = computed(() => ({
 
 watch(() => props.visible, async (v) => {
   if (!v) return
-  // Сброс перед новым запуском
   spinning.value = false
   stage.value = 'spinning'
   rotation.value = 0
   await nextTick()
-  
 
   setTimeout(() => {
     spinning.value = true
@@ -105,26 +99,27 @@ watch(() => props.visible, async (v) => {
 })
 
 function startSpin() {
-
   const w = winAngle.value
   let A
-  
+
   if (props.isWin) {
-
-    A = w * (0.15 + Math.random() * 0.7)
+    const min = w * 0.15
+    const max = w * 0.85
+    A = min + Math.random() * (max - min)
   } else {
-
-    const lose = 360 - w
-    A = w + lose * (0.05 + Math.random() * 0.9)
+    const loseSpan = 360 - w
+    const min = w + loseSpan * 0.1
+    const max = w + loseSpan * 0.9
+    A = min + Math.random() * (max - min)
   }
-  
 
+  const safeA = ((A % 360) + 360) % 360
+  const stopAt = (360 - safeA) % 360
   const spins = 5 + Math.floor(Math.random() * 2)
-  rotation.value = spins * 360 + (360 - A)
+  rotation.value = spins * 360 + stopAt
 
-
-  setTimeout(() => { 
-    stage.value = 'result' 
+  setTimeout(() => {
+    stage.value = 'result'
   }, 5200)
 }
 </script>
@@ -137,7 +132,6 @@ function startSpin() {
 }
 .modal-inner { width: min(600px, 96vw); text-align: center; animation: fadeIn 0.3s ease; }
 .spin-title { font-size: 24px; margin-bottom: 30px; font-weight: 800; }
-
 
 .wheel-container {
   position: relative;
@@ -191,7 +185,6 @@ function startSpin() {
 .legend-item .dot { width: 12px; height: 12px; border-radius: 50%; }
 .legend-item.win .dot { background: var(--success); box-shadow: 0 0 10px var(--success); }
 .legend-item.lose .dot { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
-
 
 .result-card {
   background: var(--glass); border: 1px solid var(--glass-border-hover);

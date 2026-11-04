@@ -19,7 +19,7 @@
 <script setup>
 defineProps({ caseData: { type: Object, required: true } })
 
-const formatMoney = (n) => new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' ₽'
+const formatMoney = (n) => new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 </script>
 
 <style scoped>

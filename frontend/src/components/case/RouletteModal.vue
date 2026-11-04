@@ -2,12 +2,12 @@
   <transition name="modal">
     <div v-if="visible" class="overlay" @click.self="close">
       <div class="modal-inner">
-        
+
         <div v-if="stage === 'spinning'" class="multi-roulette" :class="{ single: winners.length === 1 }">
-          <div v-for="(winner, index) in winners" :key="index" class="roulette-row">
+          <div v-for="(row, index) in itemsArray" :key="index" class="roulette-row">
             <div class="roulette-mask">
               <div class="roulette-track" :style="getTrackStyle(index)">
-                <div v-for="(item, i) in itemsArray[index]" :key="i" :class="['r-item', `r-${item.rarity_class || 'common'}`]">
+                <div v-for="(item, i) in row" :key="i" :class="['r-item', `r-${item.rarity_class || 'common'}`]">
                   <img v-if="item.image_url" :src="item.image_url" class="r-img" alt="" />
                   <i v-else :class="['fas', item.icon || 'fa-cube']"></i>
                   <span class="r-name">{{ item.name }}</span>
@@ -56,14 +56,14 @@
             </button>
           </div>
         </div>
-        
+
       </div>
     </div>
   </transition>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 
 const props = defineProps({
   visible: Boolean,
@@ -75,58 +75,79 @@ const props = defineProps({
 const emit = defineEmits(['close', 'reopen'])
 
 const stage = ref('spinning')
-const itemsArray = ref([]) 
-const offsets = ref([]) 
+const itemsArray = ref([])
+const offsets = ref([])
 
-const ITEM_W = 140
+const ITEM_W = 120
+const GAP = 20
+const STEP = ITEM_W + GAP
 const WINNER_INDEX = 32
 const TRACK_LENGTH = 40
+const TRACK_PADDING_LEFT = 10
+
+let runId = 0
 
 const formatMoney = (n) => new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 
 watch(() => props.visible, async (v) => {
   if (!v || !props.winners.length) return
+  const myRun = ++runId
+
   stage.value = 'spinning'
   itemsArray.value = []
-  offsets.value = Array(props.winners.length).fill(0)
+  offsets.value = []
+
   await nextTick()
-  startMultiRoulette()
+  if (myRun !== runId) return
+
+  startMultiRoulette(myRun)
 })
 
 function getTrackStyle(index) {
   const isSpinning = stage.value === 'spinning'
-
   const duration = 5 + index * 0.3
   return {
-    transform: `translateX(-${offsets.value[index]}px)`,
+    transform: `translateX(-${offsets.value[index] || 0}px)`,
     transition: isSpinning ? `transform ${duration}s cubic-bezier(0.12, 0.8, 0.2, 1)` : 'none',
   }
 }
 
-function startMultiRoulette() {
+function startMultiRoulette(myRun) {
   const pool = props.allItems.length ? props.allItems : props.winners
+  const winnersCopy = props.winners.slice()
 
-  props.winners.forEach((winnerItem, rowIndex) => {
+  const rows = winnersCopy.map((winnerItem) => {
     const arr = []
     for (let i = 0; i < TRACK_LENGTH; i++) {
       arr.push(i === WINNER_INDEX ? winnerItem : pool[Math.floor(Math.random() * pool.length)])
     }
-    itemsArray.value.push(arr)
+    return arr
   })
 
+  itemsArray.value = rows
+  offsets.value = Array(winnersCopy.length).fill(0)
+
   nextTick(() => {
-    props.winners.forEach((_, rowIndex) => {
-      const jitter = (Math.random() - 0.5) * 60
-      const target = WINNER_INDEX * ITEM_W + ITEM_W / 2 + jitter
+    if (myRun !== runId) return
+
+    winnersCopy.forEach((_, rowIndex) => {
+
+      const jitter = (Math.random() - 0.5) * 10 
       
+
+      const target = TRACK_PADDING_LEFT + WINNER_INDEX * STEP + ITEM_W / 2 + jitter + STEP + (GAP / 2)
+
       setTimeout(() => {
+        if (myRun !== runId) return
         offsets.value[rowIndex] = target
       }, 50 + rowIndex * 100)
     })
 
-    // Максимальное время анимации + запас
-    const maxDuration = (5 + props.winners.length * 0.3) * 1000 + 500
-    setTimeout(() => { stage.value = 'win' }, maxDuration)
+    const maxDuration = (5 + winnersCopy.length * 0.3) * 1000 + 500
+    setTimeout(() => {
+      if (myRun !== runId) return
+      stage.value = 'win'
+    }, maxDuration)
   })
 }
 
@@ -147,7 +168,7 @@ function reopen() { emit('reopen') }
 .multi-roulette:not(.single) .roulette-mask { height: 90px; }
 
 .roulette-mask { position: relative; width: 100%; background: linear-gradient(180deg, #060b14 0%, #0f1923 50%, #060b14 100%); border: 1px solid var(--glass-border-hover); border-radius: var(--radius); overflow: hidden; box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8), 0 0 60px var(--primary-glow); }
-.roulette-track { display: flex; align-items: center; gap: 20px; padding: 10px 0; height: 100%; will-change: transform; position: absolute; left: 50%; }
+.roulette-track { display: flex; align-items: center; gap: 20px; padding: 10px 0 10px 10px; height: 100%; will-change: transform; position: absolute; left: 50%; }
 
 .r-item { flex: 0 0 120px; height: 100%; background: rgba(20, 25, 40, 0.7); border-radius: 12px; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px; }
 .r-item i { font-size: 30px; color: #fff; }

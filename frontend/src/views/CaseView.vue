@@ -45,9 +45,9 @@
               </div>
 
               <div v-if="userStore.isAuth" class="qty-selector">
-                <button 
-                  v-for="n in [1, 2, 3, 4, 5, 10]" 
-                  :key="n" 
+                <button
+                  v-for="n in [1, 2, 3, 4, 5, 10]"
+                  :key="n"
                   :class="['qty-btn', { active: openCount === n }]"
                   @click="openCount = n"
                 >
@@ -94,11 +94,11 @@
               :class="['chance-card', `r-${chanceRarity(c)}`]"
             >
               <div class="chance-head">
-                <img 
-                  v-if="c.item_details?.image_url" 
-                  :src="c.item_details.image_url" 
-                  alt="" 
-                  class="chance-img" 
+                <img
+                  v-if="c.item_details?.image_url"
+                  :src="c.item_details.image_url"
+                  alt=""
+                  class="chance-img"
                 />
                 <i v-else :class="['fas', chanceIcon(c)]"></i>
                 <span class="chance-value">{{ c.chance }}%</span>
@@ -130,7 +130,7 @@
             <div
               v-for="(h, i) in history"
               :key="i"
-              :class="['history-item', `r-${h.rarity || 'common'}`]"
+              :class="['history-item', `r-${(h.rarity || 'common').toLowerCase()}`]"
             >
               <div class="h-user">
                 <i class="fas fa-user-circle"></i> {{ h.user_name }}
@@ -188,12 +188,13 @@ const formatMoney = (n) =>
   new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 
 function chanceRarity(c) {
-  return (
+  return String(
     c.item_details?.rarity_class ||
     c.item_details?.rarity ||
     'common'
   ).toLowerCase()
 }
+
 function chanceIcon(c) {
   return c.item_details?.icon || getItemIcon(c.item_details?.name || c.item_name)
 }
@@ -222,11 +223,14 @@ async function handleOpen() {
 
   const totalCost = caseData.value.price * openCount.value
   if (userStore.balance < totalCost) {
+    modalVisible.value = false
     toast.error('Недостаточно средств')
     return
   }
 
+  modalVisible.value = false
   opening.value = true
+
   try {
     const data = await openCase(caseData.value.id, openCount.value)
 
@@ -236,9 +240,11 @@ async function handleOpen() {
     }
 
     wonData.value = data
-    modalVisible.value = true
     userStore.setBalance(data.new_balance)
     loadHistory()
+
+    await new Promise(r => setTimeout(r, 50))
+    modalVisible.value = true
   } catch (e) {
     console.error(e)
     toast.error(e.response?.data?.error || 'Ошибка сети')

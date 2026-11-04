@@ -9,14 +9,14 @@
           <h3 class="panel-title"><i class="fas fa-box"></i> Мой инвентарь</h3>
           <div v-if="inventory.length === 0" class="empty-msg">Инвентарь пуст</div>
           <div v-else class="items-grid">
-            <div 
-              v-for="inv in inventory" 
-              :key="inv.id" 
+            <div
+              v-for="inv in inventory"
+              :key="inv.id"
               :class="['item-card', `r-${itemRarity(inv)}`, { active: sourceItem?.id === inv.id }]"
               @click="sourceItem = inv"
             >
               <div v-if="inv.quantity > 1" class="qty">x{{ inv.quantity }}</div>
-              
+
               <div class="item-img-wrap">
                 <img v-if="inv.item_details?.image_url" :src="inv.item_details.image_url" alt="" />
                 <i v-else :class="['fas', itemIcon(inv)]"></i>
@@ -27,7 +27,6 @@
             </div>
           </div>
         </div>
-
 
         <div class="center-panel">
           <div class="chance-circle">
@@ -48,10 +47,9 @@
           </button>
         </div>
 
-  
         <div class="glass-card target-panel">
           <h3 class="panel-title"><i class="fas fa-crosshairs"></i> Желаемый предмет</h3>
-          
+
           <div class="filters">
             <input v-model="searchQuery" class="input search-input" placeholder="Поиск по названию..." />
             <div class="filter-row">
@@ -73,9 +71,9 @@
 
           <div v-if="filteredTargets.length === 0" class="empty-msg">Ничего не найдено</div>
           <div v-else class="items-grid">
-            <div 
-              v-for="item in filteredTargets" 
-              :key="item.id" 
+            <div
+              v-for="item in filteredTargets"
+              :key="item.id"
               :class="['item-card', `r-${itemRarity(item)}`, { active: targetItem?.id === item.id, disabled: isTargetDisabled(item) }]"
               @click="selectTarget(item)"
             >
@@ -91,14 +89,13 @@
       </div>
     </div>
 
-
-    <UpgradeRoulette 
-      :visible="modalVisible" 
+    <UpgradeRoulette
+      :visible="modalVisible"
       :is-win="lastResult.isWin"
-      :chance="Number(chance)"
-      :target-item="targetItem" 
-      :source-item="sourceItem?.item_details" 
-      @close="closeModal" 
+      :chance="chance"
+      :target-item="targetItem"
+      :source-item="sourceItem?.item_details"
+      @close="closeModal"
     />
   </div>
 </template>
@@ -115,8 +112,8 @@ const toast = useToastStore()
 
 const inventory = ref([])
 const allItems = ref([])
-const sourceItem = ref(null) 
-const targetItem = ref(null) 
+const sourceItem = ref(null)
+const targetItem = ref(null)
 
 const searchQuery = ref('')
 const filterRarity = ref('all')
@@ -129,12 +126,14 @@ const lastResult = ref({ isWin: false })
 const formatMoney = (n) => new Intl.NumberFormat('ru-RU').format(Math.round(Number(n) || 0)) + ' ₽'
 
 function itemRarity(invOrItem) {
-  const details = invOrItem.item_details || invOrItem;
-  return details.rarity_class || details.rarity || 'common';
+  const details = invOrItem.item_details || invOrItem
+  const r = details.rarity_class || details.rarity || 'common'
+  return String(r).toLowerCase()
 }
+
 function itemIcon(invOrItem) {
-  const details = invOrItem.item_details || invOrItem;
-  return details.icon || getItemIcon(details.name);
+  const details = invOrItem.item_details || invOrItem
+  return details.icon || getItemIcon(details.name)
 }
 
 const chance = computed(() => {
@@ -143,7 +142,7 @@ const chance = computed(() => {
   const tgtPrice = Number(targetItem.value.price || 0)
   if (tgtPrice <= srcPrice) return 0
   const c = (srcPrice / tgtPrice) * 100
-  return Math.min(c, 90).toFixed(1)
+  return Number(Math.min(c, 90).toFixed(1))
 })
 
 const canUpgrade = computed(() => sourceItem.value && targetItem.value && chance.value > 0)
@@ -206,7 +205,7 @@ async function loadData() {
 async function handleUpgrade() {
   if (!canUpgrade.value) return
   upgrading.value = true
-  
+
   try {
     const res = await doUpgrade(sourceItem.value.id, targetItem.value.id)
     if (res.success) {
@@ -303,8 +302,8 @@ onMounted(async () => {
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
 }
 .item-img-wrap i {
-  font-size: 32px; 
-  color: #fff; 
+  font-size: 32px;
+  color: #fff;
   opacity: 0.9;
 }
 

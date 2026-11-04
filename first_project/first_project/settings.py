@@ -27,7 +27,7 @@ SECRET_KEY = '10058419C13F79217EF7916C3B7D0316'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]']
 
 
 # Application definition
@@ -118,11 +118,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
+
+USE_L10N = True
 
 USE_TZ = True
 
@@ -174,21 +176,20 @@ SWAGGER_SETTINGS = {
 
 
 
-# CORS
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
+    "http://localhost:5173",
 ]
-CORS_ALLOW_CREDENTIALS = True  # Обязательно!
+CORS_ALLOW_CREDENTIALS = True
 
-# CSRF
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:5173",
+    "http://localhost:5173",
 ]
 
-# Cookie (для локальной разработки на HTTP)
-SESSION_COOKIE_SAMESITE = 'Lax'      # Для HTTP (разработка)
-SESSION_COOKIE_SECURE = False        # Для HTTP (разработка)
-SESSION_COOKIE_HTTPONLY = False      # Чтобы Vue мог читать, если понадобится
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = False
 
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = False
